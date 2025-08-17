@@ -1,87 +1,193 @@
-EPIC: PH1 - Initiation & Planning (2025-01-06 → 2025-03-20)
-    Feature: Kickoff Meeting with Core Team (2025-01-06 → 2025-01-06)
-        Story: Prepare agenda & slides
-        Story: Conduct kickoff meeting
-    Feature: Define Migration Governance Model (2025-01-07 → 2025-01-14)
-        Story: Identify decision-makers
-        Story: Define escalation process
-        Story: Publish governance doc
-    Feature: Identify All Surveillance Scenarios & Dependencies (2025-01-15 → 2025-02-14)
-        Story: Fixed Income inventory
-        Story: Benchmark inventory
-        Story: FX inventory
-        Story: Asset Mgmt inventory
-    Feature: Assess Current On-Prem Architecture (2025-01-15 → 2025-02-28)
-        Story: Infra diagram
-        Story: Data flow mapping
-        Story: Compliance gaps
-    Feature: GCP Skills Gap Analysis & Training Plan (2025-02-01 → 2025-02-28)
-        Story: Skills survey
-        Story: Create training modules
-    Feature: Finalize Detailed Project Schedule (2025-02-15 → 2025-03-15)
-        Story: Prepare baseline timeline
-    Feature: Stakeholder Sign-off on Plan (2025-03-16 → 2025-03-20)
-        Story: Sign-off meeting
+1. Phase 1: Initiation & Planning
+Epic: PH1 – Initiation & Planning
 
-EPIC: PH2 - GCP Foundation & Framework Development (2025-03-21 → 2025-09-30)
-    Feature: Set Up GCP Landing Zone (2025-03-21 → 2025-04-15)
-        Story: Create VPC
-        Story: Configure IAM
-        Story: Org policy setup
-    Feature: Configure GCP Security & Compliance Controls (2025-04-01 → 2025-04-30)
-        Story: Data classification policy
-        Story: Encryption setup
-    Feature: Build Common Data Ingestion Framework (2025-04-15 → 2025-06-30)
-        Story: Batch ingestion module
-        Story: Streaming ingestion module
-    Feature: Build Common Data Processing Framework (2025-05-01 → 2025-07-31)
-        Story: Spark template
-        Story: Dataproc config
-    Feature: Build Monitoring & Alerting Framework (2025-06-01 → 2025-08-15)
-        Story: Metrics collection
-        Story: Dashboard setup
-    Feature: Implement Cost Management Framework (2025-06-15 → 2025-08-31)
-        Story: Budgets & alerts
-        Story: Cost allocation setup
-    Feature: Framework Internal Testing (2025-08-01 → 2025-09-15)
-        Story: Test ingestion
-        Story: Test processing
-    Feature: Framework Documentation (2025-08-15 → 2025-09-30)
-        Story: User guide
-        Story: Onboarding doc
+Description: Establish governance, scope, and baseline planning for the global GCP migration program.
+Acceptance Criteria: Program charter approved; stakeholder alignment achieved; baseline project schedule signed off.
 
-EPIC: PH3 - Pilot Migration (2025-09-15 → 2026-03-15)
-    Feature: Select Pilot Surveillance Areas (2025-09-15 → 2025-09-20)
-        Story: Criteria selection
-        Story: Stakeholder alignment
-    Feature: Migrate Pilot Scenarios to GCP (2025-09-21 → 2026-01-15)
-        Story: Code migration
-        Story: Data validation
-    Feature: Conduct Parallel Runs & Validation (2025-11-15 → 2026-02-15)
-        Story: Compare outputs
-        Story: Document variances
-    Feature: Pilot Go-Live (2026-02-16 → 2026-02-20)
-        Story: Cutover execution
-    Feature: Collect Feedback & Refine Frameworks (2026-02-21 → 2026-03-15)
-        Story: Feedback sessions
+Feature: Kickoff Meeting with Core Team
 
-EPIC: PH4 - Global Rollout Wave 1 (2026-03-16 → 2026-10-31)
-    Feature: Rollout to Fixed Income Scenarios (2026-03-16 → 2026-08-31)
-    Feature: Rollout to Benchmark Scenarios (2026-04-01 → 2026-09-15)
-    Feature: Wave 1 User Training (2026-05-01 → 2026-09-30)
-    Feature: Wave 1 Go-Live (2026-09-16 → 2026-09-20)
-    Feature: Post-Go-Live Support (Wave 1) (2026-09-21 → 2026-10-31)
+Description: Conduct formal kickoff with core migration team, outlining roles, responsibilities, objectives.
 
-EPIC: PH5 - Global Rollout Wave 2 (2026-10-01 → 2027-06-15)
-    Feature: Rollout to FX Scenarios (2026-10-01 → 2027-03-31)
-    Feature: Rollout to Asset Management Scenarios (2026-11-01 → 2027-04-30)
-    Feature: Wave 2 User Training (2027-01-01 → 2027-04-30)
-    Feature: Wave 2 Go-Live (2027-05-01 → 2027-05-05)
-    Feature: Post-Go-Live Support (Wave 2) (2027-05-06 → 2027-06-15)
+Acceptance Criteria: Meeting completed; minutes distributed; team aligned on scope.
 
-EPIC: PH6 - Stabilization & Closure (2027-06-16 → 2027-12-20)
-    Feature: Performance Optimization (2027-06-16 → 2027-08-31)
-    Feature: Decommission On-Prem Infrastructure (2027-09-01 → 2027-10-15)
-    Feature: Final Compliance Audit (2027-10-16 → 2027-11-15)
-    Feature: Project Closure & Lessons Learned (2027-11-16 → 2027-12-15)
-    Feature: Celebration & Team Recognition (2027-12-20 → 2027-12-20)
+Feature: Define Migration Governance Model
+
+Description: Create governance framework for decision-making, risk escalation, and approvals.
+
+Acceptance Criteria: Governance document signed off; escalation paths clearly defined.
+
+Feature: Identify All Surveillance Scenarios & Dependencies
+
+Description: Compile full inventory of existing surveillance scenarios across Fixed Income, Benchmark, FX, and Asset Mgmt.
+
+Acceptance Criteria: Complete scenario inventory with owners and dependencies documented.
+
+Feature: Assess Current On-Prem Architecture
+
+Description: Document existing infrastructure, data flows, monitoring, and compliance controls.
+
+Acceptance Criteria: Architecture diagrams published; compliance gaps identified.
+
+Feature: GCP Skills Gap Analysis & Training Plan
+
+Description: Assess team’s readiness and design targeted training plan.
+
+Acceptance Criteria: Skills survey completed; training calendar approved.
+
+Feature: Finalize Detailed Project Schedule
+
+Description: Develop baseline project schedule till Dec 2027.
+
+Acceptance Criteria: Project plan signed off in MS Project/Planner.
+
+Feature: Stakeholder Sign-off on Plan
+
+Description: Obtain formal approval from leadership for migration approach.
+
+Acceptance Criteria: Stakeholder signatures or written approval secured.
+
+2. Phase 2: GCP Foundation & Framework Development
+Epic: PH2 – GCP Foundation & Framework Development
+
+Description: Build reusable GCP frameworks for ingestion, processing, monitoring, security, and cost management.
+Acceptance Criteria: Frameworks tested, documented, and ready for use by surveillance teams.
+
+Feature: Set Up GCP Landing Zone
+
+Description: Configure VPC, IAM, org policies, and networking as per compliance.
+
+Acceptance Criteria: Landing zone validated by security; VPC/IAM policies active.
+
+Feature: Configure GCP Security & Compliance Controls
+
+Description: Implement encryption, audit logging, and data classification controls.
+
+Acceptance Criteria: Controls validated in compliance review.
+
+Feature: Build Common Data Ingestion Framework
+
+Description: Develop standardized pipelines for batch and streaming ingestion.
+
+Acceptance Criteria: Framework tested with sample datasets; ingestion successful.
+
+Feature: Build Common Data Processing Framework
+
+Description: Provide Spark/Dataproc templates and orchestration patterns.
+
+Acceptance Criteria: Framework validated for 2+ surveillance scenarios.
+
+Feature: Build Monitoring & Alerting Framework
+
+Description: Implement monitoring dashboards, alerts, and anomaly detection.
+
+Acceptance Criteria: Alerts trigger correctly; dashboards reviewed by compliance.
+
+Feature: Implement Cost Management Framework
+
+Description: Define budgets, quotas, and chargeback model for surveillance areas.
+
+Acceptance Criteria: Budgets active in GCP; reports validated.
+
+Feature: Framework Internal Testing
+
+Description: Validate frameworks with sample datasets.
+
+Acceptance Criteria: Test results documented; issues logged and resolved.
+
+Feature: Framework Documentation
+
+Description: Prepare onboarding and usage guides.
+
+Acceptance Criteria: Docs published on Confluence/SharePoint.
+
+3. Phase 3: Pilot Migration
+Epic: PH3 – Pilot Migration
+
+Description: Validate frameworks by migrating 1–2 pilot scenarios from different surveillance areas.
+Acceptance Criteria: Pilot scenarios migrated, validated, and cut over to GCP.
+
+Feature: Select Pilot Surveillance Areas
+
+Description: Choose representative scenarios from Fixed Income & FX.
+
+Acceptance Criteria: Pilot areas signed off by stakeholders.
+
+Feature: Migrate Pilot Scenarios to GCP
+
+Description: Refactor and migrate code, configs, and data.
+
+Acceptance Criteria: Migration complete; pipelines operational in GCP.
+
+Feature: Conduct Parallel Runs & Validation
+
+Description: Run migrated scenarios alongside on-prem for validation.
+
+Acceptance Criteria: Results match baseline within defined tolerance.
+
+Feature: Pilot Go-Live
+
+Description: Switch to GCP as production system for pilot scenarios.
+
+Acceptance Criteria: Go-live executed with minimal disruption.
+
+Feature: Collect Feedback & Refine Frameworks
+
+Description: Incorporate pilot learnings into frameworks.
+
+Acceptance Criteria: Post-mortem completed; framework updated.
+
+4. Phase 4: Global Rollout – Wave 1
+Epic: PH4 – Global Rollout Wave 1
+
+Description: Migrate Fixed Income and Benchmark scenarios.
+Acceptance Criteria: All scenarios cut over; users trained.
+
+Features:
+
+Rollout to Fixed Income Scenarios
+
+Rollout to Benchmark Scenarios
+
+Wave 1 User Training
+
+Wave 1 Go-Live
+
+Post-Go-Live Support
+
+(Each with acceptance criteria = migrated, validated, trained, supported.)
+
+5. Phase 5: Global Rollout – Wave 2
+Epic: PH5 – Global Rollout Wave 2
+
+Description: Migrate FX and Asset Management scenarios.
+Acceptance Criteria: All scenarios cut over and stabilized.
+
+Features:
+
+Rollout to FX Scenarios
+
+Rollout to Asset Management Scenarios
+
+Wave 2 User Training
+
+Wave 2 Go-Live
+
+Post-Go-Live Support
+
+6. Phase 6: Stabilization & Closure
+Epic: PH6 – Stabilization & Closure
+
+Description: Optimize performance, decommission on-prem infra, finalize compliance audit, close program.
+Acceptance Criteria: Program formally closed; lessons learned documented.
+
+Features:
+
+Performance Optimization (KPIs improved)
+
+Decommission On-Prem Infrastructure (infra shutdown)
+
+Final Compliance Audit (no critical gaps)
+
+Project Closure & Lessons Learned (retrospective published)
+
+Celebration & Team Recognition (global wrap-up meeting held)
