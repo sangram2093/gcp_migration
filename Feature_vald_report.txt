@@ -1,0 +1,49 @@
+# Feature Validation Report – [Feature Name]
+
+**Epic:** [Epic Name]  
+**Feature:** [Feature Name]  
+**Team:** [Surveillance Area – e.g., Fixed Income / FX]  
+**Owner:** [Team Lead / Responsible Person]  
+**Completion Date:** [Date of Completion]  
+**Reviewed By:** [Reviewer Name]
+
+---
+
+## 1. Feature Summary
+- **Objective:**  
+  [Brief description of what this feature was supposed to achieve]
+
+- **Scope of Work:**  
+  [What was migrated / implemented in GCP]
+
+---
+
+## 2. Validation Checklist
+| Validation Item | Description | Result (Pass/Fail) | Evidence/Link |
+|------------------|-------------|--------------------|---------------|
+| Functionality | Does the migrated feature work as expected? | | |
+| Data Accuracy | Are outputs identical to baseline/on-prem results? | | |
+| Performance | Meets expected SLAs (latency, throughput)? | | |
+| Security & Compliance | Access controls, encryption, logging validated? | | |
+| Monitoring & Alerts | Alerts trigger and dashboards work? | | |
+| Cost Controls | Budget and chargeback applied? | | |
+| Documentation | User guides and handover docs updated? | | |
+
+---
+
+## 3. Parallel Run Results
+- **Baseline Environment:** [On-Prem / Legacy system]  
+- **Test Cases Executed:** [Number]  
+- **Pass Rate:** [xx%]  
+- **Variance Observed:** [If any, describe]
+
+---
+
+## 4. Risks / Issues
+- [List any open issues, risks, or dependencies for stabilization]
+
+---
+
+## 5. Sign-Off
+- **Team Lead:** [Name, Date]  
+- **Program Lead Approval (You):** [Name, Date]
