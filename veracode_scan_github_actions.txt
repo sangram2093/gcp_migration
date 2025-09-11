@@ -1,0 +1,35 @@
+jobs:
+  veracode-pipeline-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build artifact
+        run: mvn package -DskipTests
+
+      - name: Download Veracode Pipeline Scan
+        run: |
+          curl -sSLO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
+          unzip -o pipeline-scan-LATEST.zip
+
+      - name: Run Veracode Pipeline Scan
+        run: |
+          java -jar pipeline-scan.jar \
+            --veracode_api_id ${{ secrets.VERACODE_API_ID }} \
+            --veracode_api_key ${{ secrets.VERACODE_API_KEY }} \
+            --file target/myapp.jar \
+            --jo true \
+            --json_output results.json
+
+      - name: Check Veracode results
+        run: |
+          echo "Parsing results.json..."
+          critical_count=$(jq '[.findings[] | select(.issue_type.severity == "Very High" or .issue_type.severity == "High")] | length' results.json)
+          echo "High/Critical issues found: $critical_count"
+          if [ "$critical_count" -gt 0 ]; then
+            echo "❌ Build failed due to High/Critical issues"
+            exit 1
+          else
+            echo "✅ No High/Critical issues found"
+          fi
