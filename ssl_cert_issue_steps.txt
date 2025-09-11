@@ -1,0 +1,27 @@
+Remove-Item Env:REQUESTS_CA_BUNDLE, Env:CURL_CA_BUNDLE, Env:SSL_CERT_FILE, Env:SSL_CERT_DIR, Env:HTTPS_PROXY, Env:HTTP_PROXY, Env:ALL_PROXY, Env:NO_PROXY, Env:GOOGLE_APPLICATION_CREDENTIALS -ErrorAction SilentlyContinue
+
+
+gcloud config list --format="yaml" | sed -n '/proxy:/,$p'
+gcloud config unset proxy/address
+gcloud config unset proxy/port
+gcloud config unset proxy/type
+
+gsutil version -l   # note the Boto config path
+grep -iE 'proxy|ca_certificates_file' ~/.boto 2>/dev/null
+
+
+python3 -c "import certifi; print(certifi.where())"
+
+
+https_validate_certificates = True
+ca_certificates_file = /path/printed/by/certifi.where()
+
+
+export REQUESTS_CA_BUNDLE=$(python3 -c "import certifi; print(certifi.where())")
+
+
+unset GOOGLE_APPLICATION_CREDENTIALS
+gcloud auth application-default revoke || true
+gcloud auth login
+
+
