@@ -33,3 +33,27 @@ jobs:
           else
             echo "✅ No High/Critical issues found"
           fi
+
+
+Hi Team,
+
+We have been using Veracode’s Upload & Scan (Sandbox) approach in our builds, but it often causes failures when multiple scans are queued or overlap. To address this, I recommend we transition to Veracode Pipeline Scan for our CI/CD enforcement.
+
+Key benefits of Pipeline Scan:
+
+⚡ Fast & Local Execution – Runs directly in the build pipeline without waiting for sandbox availability.
+
+🛡️ Deterministic Results – Each build executes its own scan, avoiding failures due to shared sandboxes.
+
+🚫 Policy Enforcement at Build Time – We can automatically fail builds if High/Critical issues are detected.
+
+📊 Flexible Output – JSON/SARIF reports can be integrated into GitHub Actions, dashboards, or code scanning alerts.
+
+🔄 Complementary to Policy Scans – Pipeline Scan gives fast developer feedback, while full policy scans can continue on release branches for compliance reporting.
+
+This change will give us faster feedback, more stable builds, and better developer experience without losing the compliance visibility we need.
+
+Let’s plan to adopt Pipeline Scan for build-time checks, while reserving Upload & Scan for official policy validations.
+
+Best regards,
+[Your Name]
