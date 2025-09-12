@@ -35,25 +35,50 @@ jobs:
           fi
 
 
-Hi Team,
+What the Dataproc Sub-Agent does (at a glance)
 
-We have been using Veracode’s Upload & Scan (Sandbox) approach in our builds, but it often causes failures when multiple scans are queued or overlap. To address this, I recommend we transition to Veracode Pipeline Scan for our CI/CD enforcement.
+Collects signals
 
-Key benefits of Pipeline Scan:
+Cloud Monitoring (cluster/YARN/HDFS/job metrics) 
+Google Cloud
++1
 
-⚡ Fast & Local Execution – Runs directly in the build pipeline without waiting for sandbox availability.
+Cloud Logging (driver + YARN container logs) 
+Google Cloud
++1
 
-🛡️ Deterministic Results – Each build executes its own scan, avoiding failures due to shared sandboxes.
+Job metadata via Dataproc Jobs API (state, timings, UUIDs, appIds) 
+Google Cloud
++2
+Google Cloud
++2
 
-🚫 Policy Enforcement at Build Time – We can automatically fail builds if High/Critical issues are detected.
+Spark event logs (JSON) from Spark History Server / event log dir for stage/task metrics 
+Apache Spark
++2
+Apache Spark
++2
 
-📊 Flexible Output – JSON/SARIF reports can be integrated into GitHub Actions, dashboards, or code scanning alerts.
+Builds a performance memory
 
-🔄 Complementary to Policy Scans – Pipeline Scan gives fast developer feedback, while full policy scans can continue on release branches for compliance reporting.
+Daily facts in BigQuery (job runs, stage stats, resource usage).
 
-This change will give us faster feedback, more stable builds, and better developer experience without losing the compliance visibility we need.
+Baselines (p50/p95) per job/app over trailing N days.
 
-Let’s plan to adopt Pipeline Scan for build-time checks, while reserving Upload & Scan for official policy validations.
+Detects anomalies & pinpoints causes
 
-Best regards,
-[Your Name]
+Idle or unhealthy clusters; over/under-utilization.
+
+Jobs exceeding baseline (e.g., “avg 10 min; today at 28 min”).
+
+Stage(s) driving delay (e.g., “Stage 4 takes 18/28 min, heavy shuffle & spill”).
+
+Acts (guard-railed)
+
+Alert owners with evidence + recommended fixes.
+
+Open tickets; (optional) autoscale/stop non-prod clusters with graceful decommission. 
+Google Cloud
++2
+Google Cloud
++2
