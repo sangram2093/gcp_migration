@@ -1,0 +1,191 @@
+def generate_html_report(grouped_data):
+    """
+    Generate a clean, Outlook-safe HTML email with:
+      - a fixed-width outer container
+      - a styled data table
+      - consistent borders
+    """
+
+    total_users = sum(grouped_data.values())
+
+    # --------- INLINE STYLE BLOCKS (for readability in code) ---------
+    body_style = (
+        "margin:0; padding:0; background-color:#f5f6fa; "
+        "font-family: Arial, sans-serif; font-size:13px; color:#333333;"
+    )
+
+    # Outer wrapper "card"
+    outer_table_style = (
+        "width:100%; max-width:480px; border:1px solid #dcdcdc; "
+        "border-radius:4px; background-color:#ffffff;"
+        "font-family:Arial, sans-serif;"
+    )
+
+    # Inner content padding cell
+    section_td_style = "padding:16px 20px 12px 20px; font-size:13px; line-height:1.4; color:#333333;"
+
+    # Table wrapper cell (less top padding so header sits closer to intro text)
+    table_section_td_style = "padding:0 20px 16px 20px;"
+
+    # Data table styles
+    data_table_style = (
+        "width:100%; border-collapse:collapse; "
+        "mso-table-lspace:0pt; mso-table-rspace:0pt; "
+        "font-size:12px; font-family:Arial, sans-serif;"
+    )
+
+    # Header row <th>
+    th_style = (
+        "padding:6px 8px; text-align:left; font-weight:bold; "
+        "border:1px solid #cccccc; background-color:#003d66; color:#ffffff;"
+        "font-size:12px; line-height:1.4;"
+    )
+
+    # Normal row <td>
+    td_style = (
+        "padding:6px 8px; text-align:left; "
+        "border:1px solid #cccccc; background-color:#ffffff; color:#333333;"
+        "font-size:12px; line-height:1.4;"
+    )
+
+    # Zebra row alt background
+    td_alt_style = (
+        "padding:6px 8px; text-align:left; "
+        "border:1px solid #cccccc; background-color:#f8fafc; color:#333333;"
+        "font-size:12px; line-height:1.4;"
+    )
+
+    # Total row
+    td_total_style = (
+        "padding:6px 8px; text-align:left; font-weight:bold; "
+        "border:1px solid #999999; background-color:#eef0f2; color:#000000;"
+        "font-size:12px; line-height:1.4;"
+    )
+
+    # Footer note
+    footer_note_style = "font-size:10px; line-height:1.4; color:#888888;"
+
+    # Greeting/paragraph shared
+    text_block_style = "font-size:13px; line-height:1.5; color:#333333;"
+
+    # Signature
+    signoff_style = "font-size:13px; line-height:1.5; color:#333333; font-weight:normal;"
+
+    # --------- BUILD ROWS ---------
+    rows_html_parts = []
+    # We'll zebra-strip: even index -> white, odd index -> light grey
+    for idx, (group, user_count) in enumerate(sorted(grouped_data.items())):
+        row_td_style = td_alt_style if (idx % 2 == 1) else td_style
+        rows_html_parts.append(
+            f"""
+            <tr>
+                <td style="{row_td_style}">{group}</td>
+                <td style="{row_td_style}">{user_count}</td>
+            </tr>
+            """
+        )
+
+    # Total row
+    total_row_html = f"""
+        <tr>
+            <td style="{td_total_style}">Total</td>
+            <td style="{td_total_style}">{total_users}</td>
+        </tr>
+    """
+
+    # Join all body rows + total row
+    table_body_html = "\n".join(rows_html_parts) + "\n" + total_row_html
+
+    # --------- FULL HTML ---------
+    html = f"""\
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>dbAura Usage Report</title>
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td {{
+      font-family: Arial, sans-serif !important;
+    }}
+  </style>
+  <![endif]-->
+</head>
+<body style="{body_style}">
+
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="border-collapse:collapse; width:100%; font-family:Arial, sans-serif;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <!-- Card -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="{outer_table_style}">
+          <!-- Header / Intro -->
+          <tr>
+            <td style="{section_td_style}">
+              <div style="{text_block_style}">Hi User,</div>
+              <div style="height:10px; line-height:10px; font-size:10px;">&nbsp;</div>
+              <div style="{text_block_style}">
+                Please find below the statistics on dbAura usage in terms of
+                <b>Functions</b> and <b>Total Distinct Users</b>:
+              </div>
+
+              <div style="height:16px; line-height:16px; font-size:16px;">&nbsp;</div>
+
+              <!-- Small summary pill -->
+              <div style="
+                display:inline-block;
+                background-color:#003d66;
+                color:#ffffff;
+                font-size:11px;
+                line-height:1.4;
+                font-weight:bold;
+                border-radius:4px;
+                padding:6px 10px;
+                border:1px solid #002a44;
+              ">
+                Total Active Users: {total_users}
+              </div>
+            </td>
+          </tr>
+
+          <!-- Data Table -->
+          <tr>
+            <td style="{table_section_td_style}">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="{data_table_style}">
+                <thead>
+                  <tr>
+                    <th style="{th_style} width:70%;">Function</th>
+                    <th style="{th_style} width:30%;"># of Users</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {table_body_html}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer / Note -->
+          <tr>
+            <td style="{section_td_style}">
+              <div style="{signoff_style}">
+                Thanks,<br/>
+                dbAura Reporting
+              </div>
+
+              <div style="height:12px; line-height:12px; font-size:12px;">&nbsp;</div>
+
+              <div style="{footer_note_style}">
+                Note: Please do not reply to this message.
+                This is an unmonitored mailbox and replies cannot be read or responded to.
+              </div>
+            </td>
+          </tr>
+        </table>
+        <!-- /Card -->
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+"""
+    return html
