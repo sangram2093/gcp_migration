@@ -15,8 +15,8 @@
     </header>
 
     <div class="dashboard-grid">
-      <!-- CARD 1: Search Entitlements (shorter) -->
-      <div class="card card--short" id="search-card">
+      <!-- CARD 1: Search Entitlements (now same height as others) -->
+      <div class="card card--tall" id="search-card">
         <h2>Search Entitlements</h2>
 
         <form action="/search" method="post" class="search-form">
@@ -88,9 +88,9 @@
       </div>
       <!-- END CARD 1 -->
 
-      <!-- CARD 2: DB vs. UMQ Discrepancies (taller) -->
+      <!-- CARD 2: DB vs. UWQ Discrepancies (taller + smaller font + inline roles) -->
       <div class="card card--tall discrepancy-section" id="discrepancies-card">
-        <h2>DB vs. UMQ Discrepancies</h2>
+        <h2>DB vs. UWQ Discrepancies</h2>
         <div class="table-container">
           {% if discrepancy_data %}
             <table class="summary-table">
@@ -122,7 +122,7 @@
       </div>
       <!-- END CARD 2 -->
 
-      <!-- CARD 3: Function Summary (taller) -->
+      <!-- CARD 3: Function Summary (taller + tighter row spacing) -->
       <div class="card card--tall" id="function-summary-card">
         <h2>Function Summary</h2>
         <div class="table-container">
@@ -147,7 +147,7 @@
               <tfoot>
                 <tr class="total-row">
                   <td><strong>Totals</strong></td>
-                  <td><strong>{{ resource_summary.total }}</strong></td>
+                  <td><strong>{{ resource_summary_total }}</strong></td>
                 </tr>
               </tfoot>
             </table>
