@@ -1,3 +1,8 @@
+/* Global resets to stop "bulging" */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
 /* General Body Styles */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -37,6 +42,14 @@ header h1 {
   margin: 0;
 }
 
+/* Grid: force equal widths */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 equal columns */
+  gap: 20px;
+  align-items: stretch;
+}
+
 /* Card */
 .card {
   background-color: #ffffff;
@@ -48,24 +61,16 @@ header h1 {
 
   display: flex;
   flex-direction: column;
-  min-height: 0; /* critical for nested scroll areas */
+  width: 100%;
+  min-width: 0; /* critical: allow shrink within grid column */
 }
 
-/* Uniform widths: 4 equal columns */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* All equal width */
-  gap: 20px;
-  align-items: stretch;
+.card--short { /* Search Entitlements (reduced) */
+  height: 360px;
 }
 
-/* Heights per requirement */
-.card--short { /* Search Entitlements */
-  height: 260px; /* Reduced to leave room for results below */
-}
-
-.card--tall { /* Discrepancies, Function Summary, Role Distribution */
-  height: 520px; /* Slightly taller than previous 450px */
+.card--tall {  /* DB vs. UMQ, Function Summary, Role Distribution (increased) */
+  height: 600px;
 }
 
 .card h2 {
@@ -82,18 +87,19 @@ header h1 {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 20px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .form-group {
-  flex: 1;
-  min-width: 150px;
+  flex: 1 1 200px;
+  min-width: 160px;
 }
 
 .form-group label {
   display: block;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #555;
 }
 
@@ -107,41 +113,52 @@ header h1 {
   box-sizing: border-box;
 }
 
-/* Results area inside Search: keep within card */
-.results {
-  display: flex;
-  flex-direction: column;
-  min-height: 0; /* allows inner scroll to size properly */
-  margin-top: 10px;
+/* Make Search Results visible + scrollable inside card */
+#search-card {
+  overflow: hidden;                /* keep children inside */
 }
 
-.results h3 {
-  margin: 8px 0;
+#search-card .results {
+  flex: 1 1 auto;                  /* occupy remaining vertical space */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#search-card .results h3 {
+  margin: 6px 0;
   font-size: 1.05em;
   color: #333;
 }
 
-/* Scrollable Content Areas */
-.scrollable-content,
+#search-card .scrollable-content {
+  flex: 1 1 auto;
+  overflow: auto;                  /* scroll inside card */
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 10px;
+  min-height: 0;                   /* important in flex for scrolling */
+}
+
+/* Scrollable Areas in other cards */
 .table-container,
 .chart-container {
   flex: 1 1 auto;
-  overflow: auto;            /* vertical + horizontal if needed */
+  overflow: auto;
   border: 1px solid #e9ecef;
   border-radius: 4px;
   padding: 12px;
-  min-height: 0;             /* prevents overflow out of flex container */
-}
-
-.results .scrollable-content {
-  margin-top: 10px;
+  min-height: 0;
 }
 
 /* Table Styles */
 .summary-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;             /* prevents min-content blowouts */
   font-size: 0.9em;
+  word-wrap: break-word;           /* legacy */
+  overflow-wrap: anywhere;         /* modern wrapping */
 }
 
 .summary-table th,
@@ -158,7 +175,7 @@ header h1 {
 }
 
 .summary-table ul {
-  padding-left: 15px;
+  padding-left: 16px;
   margin: 0;
 }
 
@@ -170,13 +187,12 @@ header h1 {
 }
 
 .chart-container {
-  /* fills remaining height of the card */
   position: relative;
 }
 
 .chart-container canvas {
   width: 100% !important;
-  height: 100% !important;   /* occupy full scrollable area */
+  height: 100% !important;
   display: block;
 }
 
@@ -184,7 +200,7 @@ header h1 {
 .btn {
   background-color: #007bff;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 16px;
   border: none;
   border-radius: 4px;
   font-size: 1em;
@@ -193,19 +209,13 @@ header h1 {
   display: inline-block;
   text-align: center;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
-.btn:hover {
-  background-color: #0056b3;
-}
+.btn:hover { background-color: #0056b3; }
 
-.download-btn {
-  background-color: #28a745;
-}
-
-.download-btn:hover {
-  background-color: #218838;
-}
+.download-btn { background-color: #28a745; }
+.download-btn:hover { background-color: #218838; }
 
 /* Footer */
 footer {
@@ -217,19 +227,12 @@ footer {
   font-size: 0.9em;
 }
 
-.last-updated {
-  padding-left: 15px;
-}
+.last-updated { padding-left: 15px; }
 
-/* Responsive tweaks */
+/* Responsive */
 @media (max-width: 1400px) {
-  .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
 @media (max-width: 800px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
+  .dashboard-grid { grid-template-columns: 1fr; }
 }
