@@ -1,4 +1,4 @@
-/* Global resets to stop "bulging" */
+/* Global resets to stop layout bulges */
 *,
 *::before,
 *::after { box-sizing: border-box; }
@@ -18,21 +18,21 @@ body {
 .container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0 15px 15px;
 }
 
 /* Header */
 header {
   position: relative;
   text-align: center;
-  margin-bottom: 30px;
+  margin: 12px 0 30px;          /* slight drop from top */
   border-bottom: 2px solid #e0e0e0;
-  padding-bottom: 15px;
+  padding: 10px 0 15px;         /* top padding to avoid touching top */
 }
 
 .header-actions {
   position: absolute;
-  top: 0;
+  top: 10px;                    /* not touching the top */
   right: 0;
 }
 
@@ -62,15 +62,12 @@ header h1 {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 0; /* critical: allow shrink within grid column */
+  min-width: 0; /* allow shrink within grid column */
 }
 
-.card--short { /* Search Entitlements (reduced) */
-  height: 360px;
-}
-
-.card--tall {  /* DB vs. UMQ, Function Summary, Role Distribution (increased) */
-  height: 600px;
+/* Overall increased height for all sections */
+.card--tall {  
+  height: 680px;                /* slightly taller overall */
 }
 
 .card h2 {
@@ -79,7 +76,7 @@ header h1 {
   font-size: 1.4em;
   border-bottom: 1px solid #e9ecef;
   padding-bottom: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 /* Form Styles */
@@ -113,7 +110,7 @@ header h1 {
   box-sizing: border-box;
 }
 
-/* Make Search Results visible + scrollable inside card */
+/* Make Search Results visible + scrollable inside card (more vertical space) */
 #search-card {
   overflow: hidden;                /* keep children inside */
 }
@@ -157,7 +154,6 @@ header h1 {
   border-collapse: collapse;
   table-layout: fixed;             /* prevents min-content blowouts */
   font-size: 0.9em;
-  word-wrap: break-word;           /* legacy */
   overflow-wrap: anywhere;         /* modern wrapping */
 }
 
@@ -174,9 +170,28 @@ header h1 {
   font-weight: 600;
 }
 
-.summary-table ul {
-  padding-left: 16px;
+/* Tighter line spacing specifically for Function Summary table */
+#function-summary-card .summary-table th,
+#function-summary-card .summary-table td {
+  padding: 6px 8px;                /* reduced padding */
+  line-height: 1.2;                /* tighter rows */
+}
+
+/* DB vs. UWQ: smaller table font + inline roles to reduce wrapping */
+#discrepancies-card .summary-table {
+  font-size: 0.85em;               /* smaller text */
+}
+
+#discrepancies-card .summary-table ul {
+  list-style: none;                 /* remove bullets */
+  padding-left: 0;
   margin: 0;
+}
+
+#discrepancies-card .summary-table li {
+  display: inline;                  /* inline roles */
+  margin-right: 10px;
+  white-space: nowrap;              /* keep each role intact */
 }
 
 /* Chart section */
