@@ -15,7 +15,7 @@
     </header>
 
     <div class="dashboard-grid">
-      <!-- CARD 1: Search Entitlements (now same height as others) -->
+      <!-- CARD 1: Search Entitlements (same height as others) -->
       <div class="card card--tall" id="search-card">
         <h2>Search Entitlements</h2>
 
@@ -88,16 +88,16 @@
       </div>
       <!-- END CARD 1 -->
 
-      <!-- CARD 2: DB vs. UWQ Discrepancies (taller + smaller font + inline roles) -->
+      <!-- CARD 2: Role Discrepancies (taller + smaller font + inline roles) -->
       <div class="card card--tall discrepancy-section" id="discrepancies-card">
-        <h2>DB vs. UWQ Discrepancies</h2>
+        <h2>Role Discrepancies</h2>
         <div class="table-container">
           {% if discrepancy_data %}
             <table class="summary-table">
               <thead>
                 <tr>
                   <th>User</th>
-                  <th>Missing Roles</th>
+                  <th>Missing Roles in UWQ</th>
                 </tr>
               </thead>
               <tbody>
