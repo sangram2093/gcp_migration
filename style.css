@@ -65,9 +65,9 @@ header h1 {
   min-width: 0; /* allow shrink within grid column */
 }
 
-/* Overall increased height for all sections */
+/* Comfortable (reduced) overall height for all sections */
 .card--tall {  
-  height: 680px;                /* slightly taller overall */
+  height: 560px;                /* reduced so footer fits without scroll */
 }
 
 .card h2 {
@@ -110,10 +110,8 @@ header h1 {
   box-sizing: border-box;
 }
 
-/* Make Search Results visible + scrollable inside card (more vertical space) */
-#search-card {
-  overflow: hidden;                /* keep children inside */
-}
+/* Search Results: visible + scrollable inside card */
+#search-card { overflow: hidden; }
 
 #search-card .results {
   flex: 1 1 auto;                  /* occupy remaining vertical space */
@@ -177,7 +175,7 @@ header h1 {
   line-height: 1.2;                /* tighter rows */
 }
 
-/* DB vs. UWQ: smaller table font + inline roles to reduce wrapping */
+/* Role Discrepancies: smaller table font + inline roles to reduce wrapping */
 #discrepancies-card .summary-table {
   font-size: 0.85em;               /* smaller text */
 }
@@ -235,8 +233,8 @@ header h1 {
 /* Footer */
 footer {
   text-align: center;
-  margin-top: 40px;
-  padding-top: 20px;
+  margin-top: 28px;                /* slightly tighter now */
+  padding-top: 16px;
   border-top: 1px solid #e0e0e0;
   color: #888;
   font-size: 0.9em;
