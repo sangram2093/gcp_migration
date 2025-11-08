@@ -1,7 +1,7 @@
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>dbAura Report Portal</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=last_updated) }}">
 </head>
@@ -15,7 +15,7 @@
     </header>
 
     <div class="dashboard-grid">
-      <!-- CARD 1: Search Entitlements (short) -->
+      <!-- CARD 1: Search Entitlements (shorter) -->
       <div class="card card--short" id="search-card">
         <h2>Search Entitlements</h2>
 
@@ -88,7 +88,7 @@
       </div>
       <!-- END CARD 1 -->
 
-      <!-- CARD 2: DB vs. UMQ Discrepancies (tall) -->
+      <!-- CARD 2: DB vs. UMQ Discrepancies (taller) -->
       <div class="card card--tall discrepancy-section" id="discrepancies-card">
         <h2>DB vs. UMQ Discrepancies</h2>
         <div class="table-container">
@@ -122,7 +122,7 @@
       </div>
       <!-- END CARD 2 -->
 
-      <!-- CARD 3: Function Summary (tall) -->
+      <!-- CARD 3: Function Summary (taller) -->
       <div class="card card--tall" id="function-summary-card">
         <h2>Function Summary</h2>
         <div class="table-container">
@@ -162,7 +162,7 @@
       </div>
       <!-- END CARD 3 -->
 
-      <!-- CARD 4: Role Distribution (tall) -->
+      <!-- CARD 4: Role Distribution (taller) -->
       <div class="card card--tall" id="role-distribution-card">
         <h2>Role Distribution</h2>
         <div class="chart-controls">
@@ -193,50 +193,32 @@
     function renderChart(type) {
       const ctx = document.getElementById('roleChart').getContext('2d');
 
-      if (currentChart) {
-        currentChart.destroy();
-      }
+      if (currentChart) currentChart.destroy();
 
       const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: type === 'pie' // Only show legend for pie chart
-          }
-        }
+        plugins: { legend: { display: type === 'pie' } }
       };
 
-      if (type === 'bar') {
-        chartOptions.scales = { y: { beginAtZero: true } };
-      }
+      if (type === 'bar') chartOptions.scales = { y: { beginAtZero: true } };
 
       currentChart = new Chart(ctx, {
-        type: type,
+        type,
         data: {
           labels: window.chartData.labels,
           datasets: [{
             label: '# of Users',
             data: window.chartData.data,
             backgroundColor: [
-              'rgba(0, 86, 145, 0.7)',
-              'rgba(54, 162, 235, 0.7)',
-              'rgba(255, 206, 86, 0.7)',
-              'rgba(75, 192, 192, 0.7)',
-              'rgba(153, 102, 255, 0.7)',
-              'rgba(255, 159, 64, 0.7)',
-              'rgba(240, 100, 132, 0.7)',
-              'rgba(0, 150, 136, 0.7)'
+              'rgba(0, 86, 145, 0.7)','rgba(54, 162, 235, 0.7)','rgba(255, 206, 86, 0.7)',
+              'rgba(75, 192, 192, 0.7)','rgba(153, 102, 255, 0.7)','rgba(255, 159, 64, 0.7)',
+              'rgba(240, 100, 132, 0.7)','rgba(0, 150, 136, 0.7)'
             ],
             borderColor: [
-              'rgba(0, 86, 145, 1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)',
-              'rgba(240, 100, 132, 1)',
-              'rgba(0, 150, 136, 1)'
+              'rgba(0, 86, 145, 1)','rgba(54, 162, 235, 1)','rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)','rgba(153, 102, 255, 1)','rgba(255, 159, 64, 1)',
+              'rgba(240, 100, 132, 1)','rgba(0, 150, 136, 1)'
             ],
             borderWidth: 1
           }]
@@ -245,11 +227,8 @@
       });
     }
 
-    // Render on load if data present
-    document.addEventListener('DOMContentLoaded', function() {
-      if (window.chartData && window.chartData.labels.length > 0) {
-        renderChart('bar');
-      }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.chartData && window.chartData.labels.length > 0) renderChart('bar');
     });
   </script>
 </body>
