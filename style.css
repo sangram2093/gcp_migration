@@ -1,4 +1,4 @@
-/* Global resets to stop layout bulges */
+/* Global resets */
 *,
 *::before,
 *::after { box-sizing: border-box; }
@@ -25,27 +25,36 @@ body {
 header {
   position: relative;
   text-align: center;
-  margin: 12px 0 30px;          /* slight drop from top */
+  margin: 12px 0 18px;          /* tidy spacing */
   border-bottom: 2px solid #e0e0e0;
-  padding: 10px 0 15px;         /* top padding to avoid touching top */
+  padding: 10px 0 14px;
 }
 
 .header-actions {
   position: absolute;
-  top: 10px;                    /* not touching the top */
+  top: 10px;
   right: 0;
 }
 
 header h1 {
   color: #005691;
   font-weight: 600;
-  margin: 0;
+  margin: 0 0 8px 0;
 }
 
-/* Grid: force equal widths */
+/* Quick links */
+.quick-links {
+  margin-top: 2px;
+  font-size: 0.95em;
+}
+.qlink { color: #007bff; text-decoration: none; }
+.qlink:hover { text-decoration: underline; }
+.qlink-sep { color: #bbb; margin: 0 8px; }
+
+/* Grid */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 equal columns */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
   align-items: stretch;
 }
@@ -62,30 +71,39 @@ header h1 {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 0; /* allow shrink within grid column */
+  min-width: 0;
 }
 
-/* Comfortable (reduced) overall height for all sections */
+/* Card header (title + inline action) */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.inline-action { margin: 0; }
+
+/* Height for all sections (comfortable, matches your footer needs) */
 .card--tall {  
-  height: 560px;                /* reduced so footer fits without scroll */
+  height: 560px;
 }
 
 .card h2 {
-  margin-top: 0;
+  margin: 0;
   color: #005691;
-  font-size: 1.4em;
+  font-size: 1.3em;
   border-bottom: 1px solid #e9ecef;
   padding-bottom: 10px;
-  margin-bottom: 12px;
 }
 
-/* Form Styles */
+/* Form */
 .search-form {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 16px;
-  margin-bottom: 8px;
+  margin: 12px 0 8px;
 }
 
 .form-group {
@@ -107,14 +125,13 @@ header h1 {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1em;
-  box-sizing: border-box;
 }
 
-/* Search Results: visible + scrollable inside card */
+/* Search results (inside card) */
 #search-card { overflow: hidden; }
 
 #search-card .results {
-  flex: 1 1 auto;                  /* occupy remaining vertical space */
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -128,14 +145,14 @@ header h1 {
 
 #search-card .scrollable-content {
   flex: 1 1 auto;
-  overflow: auto;                  /* scroll inside card */
+  overflow: auto;
   border: 1px solid #e9ecef;
   border-radius: 4px;
   padding: 10px;
-  min-height: 0;                   /* important in flex for scrolling */
+  min-height: 0;
 }
 
-/* Scrollable Areas in other cards */
+/* Scrollable areas in other cards */
 .table-container,
 .chart-container {
   flex: 1 1 auto;
@@ -146,13 +163,13 @@ header h1 {
   min-height: 0;
 }
 
-/* Table Styles */
+/* Table */
 .summary-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;             /* prevents min-content blowouts */
+  table-layout: fixed;
   font-size: 0.9em;
-  overflow-wrap: anywhere;         /* modern wrapping */
+  overflow-wrap: anywhere;
 }
 
 .summary-table th,
@@ -168,41 +185,33 @@ header h1 {
   font-weight: 600;
 }
 
-/* Tighter line spacing specifically for Function Summary table */
+/* Tighter spacing for Assessment Unit Summary table */
 #function-summary-card .summary-table th,
 #function-summary-card .summary-table td {
-  padding: 6px 8px;                /* reduced padding */
-  line-height: 1.2;                /* tighter rows */
+  padding: 6px 8px;
+  line-height: 1.2;
 }
 
-/* Role Discrepancies: smaller table font + inline roles to reduce wrapping */
-#discrepancies-card .summary-table {
-  font-size: 0.85em;               /* smaller text */
-}
-
+/* Role Discrepancies compact styling */
+#discrepancies-card .summary-table { font-size: 0.85em; }
 #discrepancies-card .summary-table ul {
-  list-style: none;                 /* remove bullets */
+  list-style: none;
   padding-left: 0;
   margin: 0;
 }
-
 #discrepancies-card .summary-table li {
-  display: inline;                  /* inline roles */
+  display: inline;
   margin-right: 10px;
-  white-space: nowrap;              /* keep each role intact */
+  white-space: nowrap;
 }
 
-/* Chart section */
+/* Chart */
 .chart-controls {
   display: flex;
   gap: 8px;
   margin-bottom: 10px;
 }
-
-.chart-container {
-  position: relative;
-}
-
+.chart-container { position: relative; }
 .chart-container canvas {
   width: 100% !important;
   height: 100% !important;
@@ -224,8 +233,9 @@ header h1 {
   transition: background-color 0.2s;
   white-space: nowrap;
 }
-
 .btn:hover { background-color: #0056b3; }
+.btn-small { padding: 8px 12px; font-size: 0.92em; }
+.btn-tiny  { padding: 6px 10px; font-size: 0.88em; }
 
 .download-btn { background-color: #28a745; }
 .download-btn:hover { background-color: #218838; }
@@ -233,7 +243,7 @@ header h1 {
 /* Footer */
 footer {
   text-align: center;
-  margin-top: 28px;                /* slightly tighter now */
+  margin-top: 28px;
   padding-top: 16px;
   border-top: 1px solid #e0e0e0;
   color: #888;
