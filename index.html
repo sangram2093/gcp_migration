@@ -2,22 +2,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>dbAura Report Portal</title>
+  <title>Report Portal</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=last_updated) }}">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>dbAura Report Portal</h1>
+      <h1>Report Portal</h1>
       <div class="header-actions">
         <a href="/download" class="btn download-btn">Download Excel Report</a>
       </div>
+
+      <!-- Helpful reference links -->
+      <nav class="quick-links">
+        <a class="qlink" href="https://raiseaccess.com/" target="_blank" rel="noopener">Raise Access</a>
+        <span class="qlink-sep">•</span>
+        <a class="qlink" href="https://trainingmaterial.com" target="_blank" rel="noopener">Training Material</a>
+      </nav>
     </header>
 
     <div class="dashboard-grid">
       <!-- CARD 1: Search Entitlements (same height as others) -->
       <div class="card card--tall" id="search-card">
-        <h2>Search Entitlements</h2>
+        <div class="card-header">
+          <h2>Search Entitlements</h2>
+          {% if results %}
+          <form class="inline-action" action="/download/search" method="get">
+            <input type="hidden" name="search_type" value="{{ search_type }}">
+            <input type="hidden" name="query" value="{{ query }}">
+            <button type="submit" class="btn btn-small">Download Results (Excel)</button>
+          </form>
+          {% endif %}
+        </div>
 
         <form action="/search" method="post" class="search-form">
           <div class="form-group">
@@ -25,7 +41,10 @@
             <select id="search_type" name="search_type">
               <option value="user" {% if search_type == 'user' %}selected{% endif %}>User Email</option>
               <option value="role" {% if search_type == 'role' %}selected{% endif %}>Roles</option>
-              <option value="resource" {% if search_type == 'resource' %}selected{% endif %}>Resource</option>
+              <option value="uwq_role" {% if search_type == 'uwq_role' %}selected{% endif %}>UWQ Roles</option>
+              <option value="resource" {% if search_type == 'resource' %}selected{% endif %}>Assessment Unit</option>
+              <option value="assessment_unit" {% if search_type == 'assessment_unit' %}selected{% endif %}>Assessment Unit</option>
+              <!-- kept `resource` for backend compatibility; label shown as Assessment Unit -->
             </select>
           </div>
 
@@ -59,7 +78,7 @@
                 <p>No roles found for this user.</p>
               {% endif %}
 
-              <h4>Resources:</h4>
+              <h4>Assessment Units:</h4>
               {% if results.resources %}
                 <ul>
                   {% for resource in results.resources %}
@@ -67,10 +86,10 @@
                   {% endfor %}
                 </ul>
               {% else %}
-                <p>No resources found for this user.</p>
+                <p>No Assessment Units found for this user.</p>
               {% endif %}
 
-            {% elif search_type == 'role' or search_type == 'resource' %}
+            {% elif search_type == 'role' or search_type == 'uwq_role' %}
               <h4>Users:</h4>
               {% if results.users %}
                 <ul>
@@ -79,7 +98,19 @@
                   {% endfor %}
                 </ul>
               {% else %}
-                <p>No users found for this {{ search_type }}.</p>
+                <p>No users found for this role.</p>
+              {% endif %}
+
+            {% elif search_type == 'resource' or search_type == 'assessment_unit' %}
+              <h4>Users:</h4>
+              {% if results.users %}
+                <ul>
+                  {% for user in results.users %}
+                    <li>{{ user }}</li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p>No users found for this Assessment Unit.</p>
               {% endif %}
             {% endif %}
           </div>
@@ -88,9 +119,15 @@
       </div>
       <!-- END CARD 1 -->
 
-      <!-- CARD 2: Role Discrepancies (taller + smaller font + inline roles) -->
+      <!-- CARD 2: Role Discrepancies -->
       <div class="card card--tall discrepancy-section" id="discrepancies-card">
-        <h2>Role Discrepancies</h2>
+        <div class="card-header">
+          <h2>Role Discrepancies</h2>
+          <form class="inline-action" action="/download/discrepancies" method="get">
+            <button type="submit" class="btn btn-small">Download Excel</button>
+          </form>
+        </div>
+
         <div class="table-container">
           {% if discrepancy_data %}
             <table class="summary-table">
@@ -122,16 +159,17 @@
       </div>
       <!-- END CARD 2 -->
 
-      <!-- CARD 3: Function Summary (taller + tighter row spacing) -->
+      <!-- CARD 3: Assessment Unit Summary -->
       <div class="card card--tall" id="function-summary-card">
-        <h2>Function Summary</h2>
+        <h2>Assessment Unit Summary</h2>
         <div class="table-container">
           {% if resource_summary %}
             <table class="summary-table">
               <thead>
                 <tr>
-                  <th>Resource Group</th>
+                  <th>Assessment Unit</th>
                   <th>Distinct User Count</th>
+                  <th style="width: 90px;">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,6 +178,14 @@
                   <tr>
                     <td>{{ group }}</td>
                     <td>{{ count }}</td>
+                    <td>
+                      <!-- Quick search by Assessment Unit -->
+                      <form action="/search" method="post">
+                        <input type="hidden" name="search_type" value="assessment_unit">
+                        <input type="hidden" name="query" value="{{ group }}">
+                        <button type="submit" class="btn btn-tiny">Search</button>
+                      </form>
+                    </td>
                   </tr>
                   {% endif %}
                 {% endfor %}
@@ -147,12 +193,12 @@
               <tfoot>
                 <tr class="total-row">
                   <td><strong>Totals</strong></td>
-                  <td><strong>{{ resource_summary_total }}</strong></td>
+                  <td colspan="2"><strong>{{ resource_summary_total }}</strong></td>
                 </tr>
               </tfoot>
             </table>
           {% else %}
-            <p>No resource data to summarize.</p>
+            <p>No Assessment Unit data to summarize.</p>
           {% endif %}
         </div>
 
@@ -162,7 +208,7 @@
       </div>
       <!-- END CARD 3 -->
 
-      <!-- CARD 4: Role Distribution (taller) -->
+      <!-- CARD 4: Role Distribution -->
       <div class="card card--tall" id="role-distribution-card">
         <h2>Role Distribution</h2>
         <div class="chart-controls">
@@ -177,7 +223,7 @@
     </div>
 
     <footer>
-      <p>© dbAura Reporting Tool</p>
+      <p>© Reporting Tool</p>
       {% if last_updated %}
         <p class="last-updated">Data last updated: {{ last_updated }}</p>
       {% endif %}
@@ -185,70 +231,70 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Safely pass data from Flask to JavaScript
-  window.chartData = JSON.parse('{{ chart_data | tojson | safe }}');
-  let currentChart;
+  <script>
+    // Safely pass data from Flask to JavaScript
+    window.chartData = JSON.parse('{{ chart_data | tojson | safe }}');
+    let currentChart;
 
-  function renderChart(type) {
-    const ctx = document.getElementById('roleChart').getContext('2d');
-    if (currentChart) currentChart.destroy();
+    function renderChart(type) {
+      const ctx = document.getElementById('roleChart').getContext('2d');
+      if (currentChart) currentChart.destroy();
 
-    const isPie = type === 'pie';
+      const isPie = type === 'pie';
 
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: { padding: { top: 0, right: 0, bottom: 0, left: 0 } },
-      plugins: {
-        legend: {
-          display: isPie,                // legend only for pie
-          position: isPie ? 'bottom' : 'top',
-          labels: {
-            font: { size: 10 },         // << smaller legend text
-            padding: 8,                 // tighter spacing
-            boxWidth: 10,
-            usePointStyle: true         // small round markers
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 0, right: 0, bottom: 0, left: 0 } },
+        plugins: {
+          legend: {
+            display: isPie,
+            position: isPie ? 'bottom' : 'top',
+            labels: {
+              font: { size: 10 },
+              padding: 8,
+              boxWidth: 10,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            bodyFont: { size: 12 },
+            titleFont: { size: 12 }
           }
-        },
-        tooltip: {
-          bodyFont: { size: 12 },
-          titleFont: { size: 12 }
         }
-      }
-    };
+      };
 
-    if (!isPie) {
-      chartOptions.scales = { y: { beginAtZero: true } };
+      if (!isPie) {
+        chartOptions.scales = { y: { beginAtZero: true } };
+      }
+
+      currentChart = new Chart(ctx, {
+        type,
+        data: {
+          labels: window.chartData.labels,
+          datasets: [{
+            label: '# of Users',
+            data: window.chartData.data,
+            backgroundColor: [
+              'rgba(0, 86, 145, 0.7)','rgba(54, 162, 235, 0.7)','rgba(255, 206, 86, 0.7)',
+              'rgba(75, 192, 192, 0.7)','rgba(153, 102, 255, 0.7)','rgba(255, 159, 64, 0.7)',
+              'rgba(240, 100, 132, 0.7)','rgba(0, 150, 136, 0.7)'
+            ],
+            borderColor: [
+              'rgba(0, 86, 145, 1)','rgba(54, 162, 235, 1)','rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)','rgba(153, 102, 255, 1)','rgba(255, 159, 64, 1)',
+              'rgba(240, 100, 132, 1)','rgba(0, 150, 136, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: chartOptions
+      });
     }
 
-    currentChart = new Chart(ctx, {
-      type,
-      data: {
-        labels: window.chartData.labels,
-        datasets: [{
-          label: '# of Users',
-          data: window.chartData.data,
-          backgroundColor: [
-            'rgba(0, 86, 145, 0.7)','rgba(54, 162, 235, 0.7)','rgba(255, 206, 86, 0.7)',
-            'rgba(75, 192, 192, 0.7)','rgba(153, 102, 255, 0.7)','rgba(255, 159, 64, 0.7)',
-            'rgba(240, 100, 132, 0.7)','rgba(0, 150, 136, 0.7)'
-          ],
-          borderColor: [
-            'rgba(0, 86, 145, 1)','rgba(54, 162, 235, 1)','rgba(255, 206, 86, 1)',
-            'rgba(75, 192, 192, 1)','rgba(153, 102, 255, 1)','rgba(255, 159, 64, 1)',
-            'rgba(240, 100, 132, 1)','rgba(0, 150, 136, 1)'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: chartOptions
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.chartData && window.chartData.labels.length > 0) renderChart('bar');
     });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    if (window.chartData && window.chartData.labels.length > 0) renderChart('bar');
-  });
-</script>
+  </script>
 </body>
 </html>
