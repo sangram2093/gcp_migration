@@ -42,9 +42,10 @@
               <option value="user" {% if search_type == 'user' %}selected{% endif %}>User Email</option>
               <option value="role" {% if search_type == 'role' %}selected{% endif %}>Roles</option>
               <option value="uwq_role" {% if search_type == 'uwq_role' %}selected{% endif %}>UWQ Roles</option>
-              <!-- kept 'resource' for backend compatibility, but label shown as Assessment Unit -->
+              <!-- kept 'resource' for backend compatibility, label shown as Assessment Unit -->
               <option value="resource" {% if search_type == 'resource' %}selected{% endif %}>Assessment Unit</option>
-              <option value="assessment_unit" {% if search_type == 'assessment_unit' %}selected{% endif %}>Assessment Unit</option>
+              <!-- renamed label for group search -->
+              <option value="assessment_unit" {% if search_type == 'assessment_unit' %}selected{% endif %}>Assessment Unit Group</option>
             </select>
           </div>
 
