@@ -42,9 +42,9 @@
               <option value="user" {% if search_type == 'user' %}selected{% endif %}>User Email</option>
               <option value="role" {% if search_type == 'role' %}selected{% endif %}>Roles</option>
               <option value="uwq_role" {% if search_type == 'uwq_role' %}selected{% endif %}>UWQ Roles</option>
+              <!-- kept 'resource' for backend compatibility, but label shown as Assessment Unit -->
               <option value="resource" {% if search_type == 'resource' %}selected{% endif %}>Assessment Unit</option>
               <option value="assessment_unit" {% if search_type == 'assessment_unit' %}selected{% endif %}>Assessment Unit</option>
-              <!-- kept `resource` for backend compatibility; label shown as Assessment Unit -->
             </select>
           </div>
 
@@ -169,7 +169,7 @@
                 <tr>
                   <th>Assessment Unit</th>
                   <th>Distinct User Count</th>
-                  <th style="width: 90px;">Action</th>
+                  <th style="width:90px;">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,11 +179,11 @@
                     <td>{{ group }}</td>
                     <td>{{ count }}</td>
                     <td>
-                      <!-- Quick search by Assessment Unit -->
-                      <form action="/search" method="post">
+                      <!-- Compact inline search by Assessment Unit -->
+                      <form class="row-action" action="/search" method="post">
                         <input type="hidden" name="search_type" value="assessment_unit">
                         <input type="hidden" name="query" value="{{ group }}">
-                        <button type="submit" class="btn btn-tiny">Search</button>
+                        <button type="submit" class="btn btn-xxs">Search</button>
                       </form>
                     </td>
                   </tr>
@@ -251,7 +251,7 @@
             display: isPie,
             position: isPie ? 'bottom' : 'top',
             labels: {
-              font: { size: 10 },
+              font: { size: 10 },   // smaller legend text for pie so it doesn’t collide
               padding: 8,
               boxWidth: 10,
               usePointStyle: true
