@@ -84,7 +84,7 @@ header h1 {
 }
 .inline-action { margin: 0; }
 
-/* Height for all sections (comfortable, matches your footer needs) */
+/* Height for all sections (fits footer on typical screens) */
 .card--tall {  
   height: 560px;
 }
@@ -185,11 +185,39 @@ header h1 {
   font-weight: 600;
 }
 
-/* Tighter spacing for Assessment Unit Summary table */
+/* ---- Compact the Assessment Unit Summary table ---- */
+#function-summary-card .summary-table {
+  font-size: 0.88em;                 /* slightly smaller text */
+}
+
 #function-summary-card .summary-table th,
 #function-summary-card .summary-table td {
-  padding: 6px 8px;
-  line-height: 1.2;
+  padding: 4px 6px !important;       /* tighter padding */
+  line-height: 1.15 !important;      /* tighter rows */
+}
+
+#function-summary-card .summary-table tbody tr {
+  height: auto;                       /* shrink naturally */
+}
+
+#function-summary-card .summary-table td:nth-child(3) {
+  width: 84px;                        /* keep Action column narrow */
+  text-align: center;
+}
+
+/* Inline, marginless form to avoid extra row height */
+#function-summary-card .row-action {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ultra-small button variant for row action */
+.btn-xxs {
+  padding: 4px 8px;
+  font-size: 0.82em;
+  line-height: 1;
+  border-radius: 4px;
 }
 
 /* Role Discrepancies compact styling */
