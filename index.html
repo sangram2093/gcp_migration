@@ -169,7 +169,7 @@
                 <tr>
                   <th>Assessment Unit</th>
                   <th>Distinct User Count</th>
-                  <th style="width:90px;">Action</th>
+                  <th class="th-action">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -178,12 +178,15 @@
                   <tr>
                     <td>{{ group }}</td>
                     <td>{{ count }}</td>
-                    <td>
-                      <!-- Compact inline search by Assessment Unit -->
-                      <form class="row-action" action="/search" method="post">
+                    <td class="td-action">
+                      <!-- Ultra-compact inline search by Assessment Unit -->
+                      <form class="row-action" action="/search" method="post" title="Search users in {{ group }}">
                         <input type="hidden" name="search_type" value="assessment_unit">
                         <input type="hidden" name="query" value="{{ group }}">
-                        <button type="submit" class="btn btn-xxs">Search</button>
+                        <button type="submit" class="btn-ico" aria-label="Search {{ group }}">
+                          <span aria-hidden="true">🔍</span>
+                          <span class="sr-only">Search</span>
+                        </button>
                       </form>
                     </td>
                   </tr>
@@ -251,7 +254,7 @@
             display: isPie,
             position: isPie ? 'bottom' : 'top',
             labels: {
-              font: { size: 10 },   // smaller legend text for pie so it doesn’t collide
+              font: { size: 10 },   // smaller legend text for pie
               padding: 8,
               boxWidth: 10,
               usePointStyle: true
