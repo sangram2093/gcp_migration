@@ -47731,7 +47731,7 @@
       "format": "esm"
     },
     "src/config.ts": {
-      "bytes": 3331,
+      "bytes": 4176,
       "imports": [
         {
           "path": "@dbninjadev/config-yaml",
@@ -99070,7 +99070,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 44790906
+      "bytes": 44792131
     },
     "dist/index.js": {
       "imports": [
@@ -110786,7 +110786,7 @@
           "bytesInOutput": 5117
         },
         "src/config.ts": {
-          "bytesInOutput": 1099
+          "bytesInOutput": 1400
         },
         "node_modules/@opentelemetry/sdk-metrics/build/src/export/AggregationTemporality.js": {
           "bytesInOutput": 256
@@ -115835,7 +115835,7 @@
           "bytesInOutput": 1896
         }
       },
-      "bytes": 13034515
+      "bytes": 13034816
     }
   }
 }
