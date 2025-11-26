@@ -1454,32 +1454,6 @@
       ],
       "format": "cjs"
     },
-    "../../node_modules/has-flag/index.js": {
-      "bytes": 330,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../node_modules/supports-color/index.js": {
-      "bytes": 3065,
-      "imports": [
-        {
-          "path": "os",
-          "kind": "require-call",
-          "external": true
-        },
-        {
-          "path": "tty",
-          "kind": "require-call",
-          "external": true
-        },
-        {
-          "path": "../../node_modules/has-flag/index.js",
-          "kind": "require-call",
-          "original": "has-flag"
-        }
-      ],
-      "format": "cjs"
-    },
     "../../packages/fetch/node_modules/debug/src/node.js": {
       "bytes": 4728,
       "imports": [
@@ -1494,9 +1468,9 @@
           "external": true
         },
         {
-          "path": "../../node_modules/supports-color/index.js",
+          "path": "supports-color",
           "kind": "require-call",
-          "original": "supports-color"
+          "external": true
         },
         {
           "path": "../../packages/fetch/node_modules/debug/src/common.js",
@@ -13144,232 +13118,319 @@
       ],
       "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/runtime.js": {
-      "bytes": 12955,
+    "../../packages/dbninja-sdk/typescript/api/src/runtime.ts": {
+      "bytes": 14257,
       "imports": [],
-      "format": "cjs"
+      "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInnerConfigResult.js": {
-      "bytes": 2449,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant200Response.js": {
-      "bytes": 2951,
+    "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInnerConfigResult.ts": {
+      "bytes": 2884,
       "imports": [
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInnerConfigResult.js",
-          "kind": "require-call",
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant200Response.ts": {
+      "bytes": 4212,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInnerConfigResult.ts",
+          "kind": "import-statement",
           "original": "./ListAssistants200ResponseInnerConfigResult"
         }
       ],
-      "format": "cjs"
+      "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant403Response.js": {
-      "bytes": 1714,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant404Response.js": {
-      "bytes": 1714,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetFreeTrialStatus200Response.js": {
-      "bytes": 2611,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetModelsAddOnCheckoutUrl200Response.js": {
-      "bytes": 1973,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetModelsAddOnCheckoutUrl500Response.js": {
-      "bytes": 1948,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetPolicy200Response.js": {
-      "bytes": 1762,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistantFullSlugs429Response.js": {
-      "bytes": 1894,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInner.js": {
-      "bytes": 3077,
+    "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant403Response.ts": {
+      "bytes": 1782,
       "imports": [
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInnerConfigResult.js",
-          "kind": "require-call",
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant404Response.ts": {
+      "bytes": 1782,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/GetFreeTrialStatus200Response.ts": {
+      "bytes": 3372,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/GetModelsAddOnCheckoutUrl200Response.ts": {
+      "bytes": 2029,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/GetModelsAddOnCheckoutUrl500Response.ts": {
+      "bytes": 1990,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/GetPolicy200Response.ts": {
+      "bytes": 2007,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistantFullSlugs429Response.ts": {
+      "bytes": 1942,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInner.ts": {
+      "bytes": 4366,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInnerConfigResult.ts",
+          "kind": "import-statement",
           "original": "./ListAssistants200ResponseInnerConfigResult"
         }
       ],
-      "format": "cjs"
+      "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants401Response.js": {
-      "bytes": 1750,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants404Response.js": {
-      "bytes": 1750,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListOrganizations200ResponseOrganizationsInner.js": {
-      "bytes": 2530,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListOrganizations200Response.js": {
-      "bytes": 2223,
+    "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants401Response.ts": {
+      "bytes": 1814,
       "imports": [
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListOrganizations200ResponseOrganizationsInner.js",
-          "kind": "require-call",
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants404Response.ts": {
+      "bytes": 1814,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/ListOrganizations200ResponseOrganizationsInner.ts": {
+      "bytes": 2986,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/ListOrganizations200Response.ts": {
+      "bytes": 2657,
+      "imports": [
+        {
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListOrganizations200ResponseOrganizationsInner.ts",
+          "kind": "import-statement",
           "original": "./ListOrganizations200ResponseOrganizationsInner"
         }
       ],
-      "format": "cjs"
+      "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/SyncSecretsRequest.js": {
-      "bytes": 1915,
-      "imports": [],
-      "format": "cjs"
-    },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/models/index.js": {
-      "bytes": 1806,
+    "../../packages/dbninja-sdk/typescript/api/src/models/SyncSecretsRequest.ts": {
+      "bytes": 2335,
       "imports": [
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant200Response.js",
-          "kind": "require-call",
+          "path": "../runtime",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/dbninja-sdk/typescript/api/src/models/index.ts": {
+      "bytes": 796,
+      "imports": [
+        {
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant200Response.ts",
+          "kind": "import-statement",
           "original": "./GetAssistant200Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant403Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant403Response.ts",
+          "kind": "import-statement",
           "original": "./GetAssistant403Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant404Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant404Response.ts",
+          "kind": "import-statement",
           "original": "./GetAssistant404Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetFreeTrialStatus200Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/GetFreeTrialStatus200Response.ts",
+          "kind": "import-statement",
           "original": "./GetFreeTrialStatus200Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetModelsAddOnCheckoutUrl200Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/GetModelsAddOnCheckoutUrl200Response.ts",
+          "kind": "import-statement",
           "original": "./GetModelsAddOnCheckoutUrl200Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetModelsAddOnCheckoutUrl500Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/GetModelsAddOnCheckoutUrl500Response.ts",
+          "kind": "import-statement",
           "original": "./GetModelsAddOnCheckoutUrl500Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetPolicy200Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/GetPolicy200Response.ts",
+          "kind": "import-statement",
           "original": "./GetPolicy200Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistantFullSlugs429Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistantFullSlugs429Response.ts",
+          "kind": "import-statement",
           "original": "./ListAssistantFullSlugs429Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInner.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInner.ts",
+          "kind": "import-statement",
           "original": "./ListAssistants200ResponseInner"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInnerConfigResult.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInnerConfigResult.ts",
+          "kind": "import-statement",
           "original": "./ListAssistants200ResponseInnerConfigResult"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants401Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants401Response.ts",
+          "kind": "import-statement",
           "original": "./ListAssistants401Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants404Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants404Response.ts",
+          "kind": "import-statement",
           "original": "./ListAssistants404Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListOrganizations200Response.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListOrganizations200Response.ts",
+          "kind": "import-statement",
           "original": "./ListOrganizations200Response"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListOrganizations200ResponseOrganizationsInner.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/ListOrganizations200ResponseOrganizationsInner.ts",
+          "kind": "import-statement",
           "original": "./ListOrganizations200ResponseOrganizationsInner"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/SyncSecretsRequest.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/SyncSecretsRequest.ts",
+          "kind": "import-statement",
           "original": "./SyncSecretsRequest"
         }
       ],
-      "format": "cjs"
+      "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/apis/DefaultApi.js": {
-      "bytes": 16672,
+    "../../packages/dbninja-sdk/typescript/api/src/apis/DefaultApi.ts": {
+      "bytes": 26395,
       "imports": [
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/runtime.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/runtime.ts",
+          "kind": "import-statement",
           "original": "../runtime"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/index.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/index.ts",
+          "kind": "import-statement",
           "original": "../models/index"
         }
       ],
-      "format": "cjs"
+      "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/apis/index.js": {
-      "bytes": 847,
+    "../../packages/dbninja-sdk/typescript/api/src/apis/index.ts": {
+      "bytes": 75,
       "imports": [
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/apis/DefaultApi.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/apis/DefaultApi.ts",
+          "kind": "import-statement",
           "original": "./DefaultApi"
         }
       ],
-      "format": "cjs"
+      "format": "esm"
     },
-    "../../packages/dbninja-sdk/typescript/dist/api/dist/index.js": {
-      "bytes": 942,
+    "../../packages/dbninja-sdk/typescript/api/src/index.ts": {
+      "bytes": 136,
       "imports": [
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/runtime.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/runtime.ts",
+          "kind": "import-statement",
           "original": "./runtime"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/apis/index.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/apis/index.ts",
+          "kind": "import-statement",
           "original": "./apis/index"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/models/index.js",
-          "kind": "require-call",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/models/index.ts",
+          "kind": "import-statement",
           "original": "./models/index"
         }
       ],
-      "format": "cjs"
+      "format": "esm"
     },
     "../../packages/config-yaml/dist/converter.js": {
       "bytes": 4738,
@@ -15035,7 +15096,7 @@
       "format": "esm"
     },
     "../../packages/config-yaml/dist/schemas/models.js": {
-      "bytes": 6173,
+      "bytes": 6223,
       "imports": [
         {
           "path": "../../packages/config-yaml/node_modules/zod/lib/index.mjs",
@@ -47683,7 +47744,7 @@
           "original": "@dbninjadev/openai-adapters"
         },
         {
-          "path": "../../packages/dbninja-sdk/typescript/dist/api/dist/index.js",
+          "path": "../../packages/dbninja-sdk/typescript/api/src/index.ts",
           "kind": "import-statement",
           "original": "@dbninjadev/sdk/dist/api/dist/index.js"
         },
@@ -99009,7 +99070,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 44795451
+      "bytes": 44790906
     },
     "dist/index.js": {
       "imports": [
@@ -99424,22 +99485,17 @@
           "external": true
         },
         {
-          "path": "os",
-          "kind": "require-call",
-          "external": true
-        },
-        {
-          "path": "tty",
-          "kind": "require-call",
-          "external": true
-        },
-        {
           "path": "tty",
           "kind": "require-call",
           "external": true
         },
         {
           "path": "util",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "supports-color",
           "kind": "require-call",
           "external": true
         },
@@ -103184,14 +103240,8 @@
         "../../packages/fetch/node_modules/debug/src/browser.js": {
           "bytesInOutput": 2635
         },
-        "../../node_modules/has-flag/index.js": {
-          "bytesInOutput": 184
-        },
-        "../../node_modules/supports-color/index.js": {
-          "bytesInOutput": 1695
-        },
         "../../packages/fetch/node_modules/debug/src/node.js": {
-          "bytesInOutput": 2022
+          "bytesInOutput": 2036
         },
         "../../packages/fetch/node_modules/debug/src/index.js": {
           "bytesInOutput": 144
@@ -104870,65 +104920,65 @@
         "../../packages/openai-adapters/dist/index.js": {
           "bytesInOutput": 2491
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/runtime.js": {
-          "bytesInOutput": 5771
+        "../../packages/dbninja-sdk/typescript/api/src/runtime.ts": {
+          "bytesInOutput": 4011
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInnerConfigResult.js": {
-          "bytesInOutput": 826
+        "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInnerConfigResult.ts": {
+          "bytesInOutput": 188
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant200Response.js": {
-          "bytesInOutput": 1177
+        "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant200Response.ts": {
+          "bytesInOutput": 380
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant403Response.js": {
-          "bytesInOutput": 511
+        "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant403Response.ts": {
+          "bytesInOutput": 18
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetAssistant404Response.js": {
-          "bytesInOutput": 511
+        "../../packages/dbninja-sdk/typescript/api/src/models/GetAssistant404Response.ts": {
+          "bytesInOutput": 18
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetFreeTrialStatus200Response.js": {
-          "bytesInOutput": 1019
+        "../../packages/dbninja-sdk/typescript/api/src/models/GetFreeTrialStatus200Response.ts": {
+          "bytesInOutput": 306
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetModelsAddOnCheckoutUrl200Response.js": {
-          "bytesInOutput": 566
+        "../../packages/dbninja-sdk/typescript/api/src/models/GetModelsAddOnCheckoutUrl200Response.ts": {
+          "bytesInOutput": 98
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetModelsAddOnCheckoutUrl500Response.js": {
-          "bytesInOutput": 576
+        "../../packages/dbninja-sdk/typescript/api/src/models/GetModelsAddOnCheckoutUrl500Response.ts": {
+          "bytesInOutput": 18
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/GetPolicy200Response.js": {
-          "bytesInOutput": 550
+        "../../packages/dbninja-sdk/typescript/api/src/models/GetPolicy200Response.ts": {
+          "bytesInOutput": 167
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistantFullSlugs429Response.js": {
-          "bytesInOutput": 561
+        "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistantFullSlugs429Response.ts": {
+          "bytesInOutput": 18
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants200ResponseInner.js": {
-          "bytesInOutput": 1212
+        "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants200ResponseInner.ts": {
+          "bytesInOutput": 380
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants401Response.js": {
-          "bytesInOutput": 521
+        "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants401Response.ts": {
+          "bytesInOutput": 18
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListAssistants404Response.js": {
-          "bytesInOutput": 521
+        "../../packages/dbninja-sdk/typescript/api/src/models/ListAssistants404Response.ts": {
+          "bytesInOutput": 18
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListOrganizations200ResponseOrganizationsInner.js": {
-          "bytesInOutput": 781
+        "../../packages/dbninja-sdk/typescript/api/src/models/ListOrganizations200ResponseOrganizationsInner.ts": {
+          "bytesInOutput": 161
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/ListOrganizations200Response.js": {
-          "bytesInOutput": 726
+        "../../packages/dbninja-sdk/typescript/api/src/models/ListOrganizations200Response.ts": {
+          "bytesInOutput": 132
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/SyncSecretsRequest.js": {
-          "bytesInOutput": 646
+        "../../packages/dbninja-sdk/typescript/api/src/models/SyncSecretsRequest.ts": {
+          "bytesInOutput": 157
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/models/index.js": {
-          "bytesInOutput": 715
+        "../../packages/dbninja-sdk/typescript/api/src/models/index.ts": {
+          "bytesInOutput": 107
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/apis/DefaultApi.js": {
-          "bytesInOutput": 5906
+        "../../packages/dbninja-sdk/typescript/api/src/apis/DefaultApi.ts": {
+          "bytesInOutput": 4242
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/apis/index.js": {
-          "bytesInOutput": 535
+        "../../packages/dbninja-sdk/typescript/api/src/apis/index.ts": {
+          "bytesInOutput": 23
         },
-        "../../packages/dbninja-sdk/typescript/dist/api/dist/index.js": {
-          "bytesInOutput": 563
+        "../../packages/dbninja-sdk/typescript/api/src/index.ts": {
+          "bytesInOutput": 35
         },
         "../../packages/config-yaml/dist/converter.js": {
           "bytesInOutput": 30
@@ -105177,7 +105227,7 @@
           "bytesInOutput": 748
         },
         "../../packages/config-yaml/dist/schemas/models.js": {
-          "bytesInOutput": 4261
+          "bytesInOutput": 4302
         },
         "../../packages/config-yaml/dist/schemas/data/base.js": {
           "bytesInOutput": 198
@@ -110736,7 +110786,7 @@
           "bytesInOutput": 5117
         },
         "src/config.ts": {
-          "bytesInOutput": 1138
+          "bytesInOutput": 1099
         },
         "node_modules/@opentelemetry/sdk-metrics/build/src/export/AggregationTemporality.js": {
           "bytesInOutput": 256
@@ -111138,22 +111188,22 @@
           "bytesInOutput": 1149
         },
         "node_modules/readable-stream/lib/_stream_writable.js": {
-          "bytesInOutput": 7320
+          "bytesInOutput": 7318
         },
         "node_modules/readable-stream/lib/_stream_duplex.js": {
-          "bytesInOutput": 1296
+          "bytesInOutput": 1295
         },
         "node_modules/readable-stream/lib/_stream_readable.js": {
-          "bytesInOutput": 11031
+          "bytesInOutput": 11029
         },
         "node_modules/readable-stream/lib/_stream_transform.js": {
-          "bytesInOutput": 2047
+          "bytesInOutput": 2046
         },
         "node_modules/readable-stream/lib/_stream_passthrough.js": {
           "bytesInOutput": 261
         },
         "node_modules/readable-stream/readable.js": {
-          "bytesInOutput": 396
+          "bytesInOutput": 395
         },
         "node_modules/jszip/lib/support.js": {
           "bytesInOutput": 589
@@ -111183,7 +111233,7 @@
           "bytesInOutput": 2181
         },
         "node_modules/jszip/lib/utf8.js": {
-          "bytesInOutput": 2580
+          "bytesInOutput": 2572
         },
         "node_modules/jszip/lib/stream/ConvertWorker.js": {
           "bytesInOutput": 274
@@ -111192,7 +111242,7 @@
           "bytesInOutput": 367
         },
         "node_modules/jszip/lib/stream/StreamHelper.js": {
-          "bytesInOutput": 1865
+          "bytesInOutput": 1857
         },
         "node_modules/jszip/lib/defaults.js": {
           "bytesInOutput": 209
@@ -111219,7 +111269,7 @@
           "bytesInOutput": 1111
         },
         "node_modules/pako/lib/zlib/trees.js": {
-          "bytesInOutput": 7105
+          "bytesInOutput": 7097
         },
         "node_modules/pako/lib/zlib/adler32.js": {
           "bytesInOutput": 213
@@ -111231,7 +111281,7 @@
           "bytesInOutput": 222
         },
         "node_modules/pako/lib/zlib/deflate.js": {
-          "bytesInOutput": 14892
+          "bytesInOutput": 14860
         },
         "node_modules/pako/lib/utils/strings.js": {
           "bytesInOutput": 1767
@@ -111240,7 +111290,7 @@
           "bytesInOutput": 256
         },
         "node_modules/pako/lib/deflate.js": {
-          "bytesInOutput": 2325
+          "bytesInOutput": 2317
         },
         "node_modules/pako/lib/zlib/inffast.js": {
           "bytesInOutput": 1903
@@ -111249,7 +111299,7 @@
           "bytesInOutput": 1741
         },
         "node_modules/pako/lib/zlib/inflate.js": {
-          "bytesInOutput": 11863
+          "bytesInOutput": 11855
         },
         "node_modules/pako/lib/zlib/constants.js": {
           "bytesInOutput": 433
@@ -111258,19 +111308,19 @@
           "bytesInOutput": 203
         },
         "node_modules/pako/lib/inflate.js": {
-          "bytesInOutput": 2804
+          "bytesInOutput": 2796
         },
         "node_modules/pako/index.js": {
           "bytesInOutput": 131
         },
         "node_modules/jszip/lib/flate.js": {
-          "bytesInOutput": 985
+          "bytesInOutput": 977
         },
         "node_modules/jszip/lib/compressions.js": {
           "bytesInOutput": 217
         },
         "node_modules/jszip/lib/signature.js": {
-          "bytesInOutput": 240
+          "bytesInOutput": 233
         },
         "node_modules/jszip/lib/generate/ZipFileWorker.js": {
           "bytesInOutput": 4384
@@ -111342,7 +111392,7 @@
           "bytesInOutput": 471
         },
         "node_modules/yaml/dist/doc/createNode.js": {
-          "bytesInOutput": 1298
+          "bytesInOutput": 1290
         },
         "node_modules/yaml/dist/nodes/Collection.js": {
           "bytesInOutput": 2067
@@ -111375,7 +111425,7 @@
           "bytesInOutput": 599
         },
         "node_modules/yaml/dist/stringify/stringifyCollection.js": {
-          "bytesInOutput": 2095
+          "bytesInOutput": 2087
         },
         "node_modules/yaml/dist/nodes/YAMLMap.js": {
           "bytesInOutput": 2063
@@ -111420,7 +111470,7 @@
           "bytesInOutput": 1312
         },
         "node_modules/yaml/dist/schema/yaml-1.1/omap.js": {
-          "bytesInOutput": 1195
+          "bytesInOutput": 1189
         },
         "node_modules/yaml/dist/schema/yaml-1.1/bool.js": {
           "bytesInOutput": 514
@@ -111432,7 +111482,7 @@
           "bytesInOutput": 1175
         },
         "node_modules/yaml/dist/schema/yaml-1.1/set.js": {
-          "bytesInOutput": 1498
+          "bytesInOutput": 1492
         },
         "node_modules/yaml/dist/schema/yaml-1.1/timestamp.js": {
           "bytesInOutput": 1664
@@ -111489,7 +111539,7 @@
           "bytesInOutput": 2851
         },
         "node_modules/yaml/dist/compose/compose-scalar.js": {
-          "bytesInOutput": 1558
+          "bytesInOutput": 1550
         },
         "node_modules/yaml/dist/compose/util-empty-scalar-position.js": {
           "bytesInOutput": 295
@@ -111510,7 +111560,7 @@
           "bytesInOutput": 706
         },
         "node_modules/yaml/dist/parse/cst-visit.js": {
-          "bytesInOutput": 956
+          "bytesInOutput": 948
         },
         "node_modules/yaml/dist/parse/cst.js": {
           "bytesInOutput": 1465
@@ -111543,7 +111593,7 @@
           "bytesInOutput": 696
         },
         "src/onboarding.ts": {
-          "bytesInOutput": 3582
+          "bytesInOutput": 3576
         },
         "src/services/ApiClientService.ts": {
           "bytesInOutput": 563
@@ -111585,7 +111635,7 @@
           "bytesInOutput": 471
         },
         "../../core/node_modules/yaml/dist/doc/createNode.js": {
-          "bytesInOutput": 1298
+          "bytesInOutput": 1290
         },
         "../../core/node_modules/yaml/dist/nodes/Collection.js": {
           "bytesInOutput": 2067
@@ -111618,7 +111668,7 @@
           "bytesInOutput": 599
         },
         "../../core/node_modules/yaml/dist/stringify/stringifyCollection.js": {
-          "bytesInOutput": 2095
+          "bytesInOutput": 2087
         },
         "../../core/node_modules/yaml/dist/nodes/YAMLMap.js": {
           "bytesInOutput": 2063
@@ -111663,7 +111713,7 @@
           "bytesInOutput": 1312
         },
         "../../core/node_modules/yaml/dist/schema/yaml-1.1/omap.js": {
-          "bytesInOutput": 1195
+          "bytesInOutput": 1189
         },
         "../../core/node_modules/yaml/dist/schema/yaml-1.1/bool.js": {
           "bytesInOutput": 514
@@ -111675,7 +111725,7 @@
           "bytesInOutput": 1175
         },
         "../../core/node_modules/yaml/dist/schema/yaml-1.1/set.js": {
-          "bytesInOutput": 1498
+          "bytesInOutput": 1492
         },
         "../../core/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js": {
           "bytesInOutput": 1659
@@ -111732,7 +111782,7 @@
           "bytesInOutput": 2851
         },
         "../../core/node_modules/yaml/dist/compose/compose-scalar.js": {
-          "bytesInOutput": 1558
+          "bytesInOutput": 1550
         },
         "../../core/node_modules/yaml/dist/compose/util-empty-scalar-position.js": {
           "bytesInOutput": 302
@@ -111753,7 +111803,7 @@
           "bytesInOutput": 706
         },
         "../../core/node_modules/yaml/dist/parse/cst-visit.js": {
-          "bytesInOutput": 956
+          "bytesInOutput": 948
         },
         "../../core/node_modules/yaml/dist/parse/cst.js": {
           "bytesInOutput": 1465
@@ -115785,7 +115835,7 @@
           "bytesInOutput": 1896
         }
       },
-      "bytes": 13050273
+      "bytes": 13034515
     }
   }
 }
