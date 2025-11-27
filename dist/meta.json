@@ -56035,7 +56035,7 @@
       "format": "esm"
     },
     "src/telemetry/posthogService.ts": {
-      "bytes": 3800,
+      "bytes": 3552,
       "imports": [
         {
           "path": "dns/promises",
@@ -99070,7 +99070,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 44792131
+      "bytes": 44791630
     },
     "dist/index.js": {
       "imports": [
@@ -112031,7 +112031,7 @@
           "bytesInOutput": 37812
         },
         "src/telemetry/posthogService.ts": {
-          "bytesInOutput": 1904
+          "bytesInOutput": 1779
         },
         "src/logging.ts": {
           "bytesInOutput": 196
@@ -115835,7 +115835,7 @@
           "bytesInOutput": 1896
         }
       },
-      "bytes": 13034816
+      "bytes": 13034691
     }
   }
 }
