@@ -1,0 +1,46 @@
+Summary
+Adds in‑chat browser integration powered by a new browser_action tool and a VS Code webview, enabling the assistant to open a URL, interact (click/type/scroll), and return screenshots + console logs inline in the chat. This is a screenshot‑driven preview (no live iframe). Branch browser-integration, tag v0.0.32.
+
+Motivation
+Verify generated web apps (e.g., Flask) without leaving the chat.
+Provide step‑by‑step, tool‑driven browser interactions with observable outcomes (screenshots/logs).
+Maintain security posture: no raw iframe rendering; all content is captured via Puppeteer.
+How It Works
+The assistant uses browser_action:
+launch (URL) → start a browser session at a URL
+click (coordinate), type (text), scroll_down, scroll_up, close
+Each non‑close action returns a screenshot + console logs, rendered inline in the chat.
+The session ends with close, after which other tools can be used again.
+Changes
+core/tools
+core/tools/builtIn.ts: add built‑in tool id for browser action
+core/tools/definitions/index.ts: register new tool
+core/tools/index.ts: export registry updates
+core/tools/definitions/browserAction.ts: NEW — tool schema/spec
+core/tools/implementations/browserAction.ts: NEW — tool implementation (launch, click, type, scroll, close)
+VS Code extension
+extensions/vscode/src/browser/BrowserController.ts: NEW — controller for browser session interactions
+extensions/vscode/src/browser/BrowserPanel.ts: NEW — webview panel that renders the session (URL bar, screenshot area, logs)
+extensions/vscode/src/browser/index.ts: NEW — exports/bootstrapping
+extensions/vscode/src/extension/VsCodeExtension.ts: wire up panel/commands
+extensions/vscode/package.json, package-lock.json: contributions, activation events, deps
+UI/UX Notes
+Renders an inline “browser session” section with a URL bar, screenshot area, cursor overlay, and console logs.
+Not a live iframe; each interaction produces a fresh screenshot/logs for deterministic review.
+Configuration
+No mandatory settings. Defaults allow launching a local URL (e.g., http://localhost:5000) and interacting.
+Testing
+Start a local dev server (e.g., Flask).
+Ask the assistant to:
+Run the server (execute_command).
+Use browser_action to launch the local URL.
+Perform click/type/scroll_*, then close.
+Verify screenshots and console logs appear inline and progress through steps correctly.
+Backwards Compatibility
+No breaking changes to existing tools or extension flows.
+New tool is additive and only used when invoked.
+Risks & Mitigations
+Long‑running pages or heavy JS can delay screenshots.
+Mitigation: Timeouts and load‑state checks; user can close and retry.
+Mis‑clicks due to coordinate selection.
+Mitigation: Clear screenshots and cursor overlay to guide subsequent clicks.
