@@ -1,0 +1,643 @@
+Nice, let’s make a little “streaming / real-time DS” question bank like your Q1 (fraud alerts).
+
+I’ll give you several new questions in very easy language, all in the same spirit as Q1:
+
+Continuous stream of events
+
+Sliding windows / online decisions
+
+Hash maps, queues, heaps, etc.
+
+Each with a plain-English solution + small example
+
+
+You can mix and match or tweak numbers live in the interview.
+
+
+---
+
+Q1A. Real-Time “Too Many Login Failures” Alert
+
+Question (easy language)
+
+A website receives a continuous stream of login attempts:
+
+(userId, isSuccess, timestampInSeconds)
+
+You want to raise an alert if any user has more than 5 failed logins in any 15-minute period.
+
+Ask the candidate:
+
+What will you store in memory for each user?
+
+When a new login attempt comes, how will you quickly decide if this user should be flagged?
+
+
+Plain-English solution idea
+
+For each user:
+
+Keep a queue/list of timestamps of failed logins only.
+
+Also track the count of failed attempts in the last 15 minutes.
+
+
+When a new login comes at time t:
+
+1. If it’s a success:
+
+You may ignore it for this rule (or even clear the user’s failures if you want).
+
+
+
+2. If it’s a failure for user U:
+
+Look at U’s queue of failure times.
+
+Remove all failures that are older than t - 15 minutes.
+
+Insert the new failure timestamp t.
+
+Now if the queue length (count) > 5 → raise alert.
+
+
+
+
+Tiny example
+
+User A failed attempts at:
+
+10:00 → queue: [10:00]
+
+10:03 → [10:00, 10:03]
+
+10:05 → [10:00, 10:03, 10:05]
+
+10:10 → [10:00, 10:03, 10:05, 10:10]
+
+10:12 → [10:00, 10:03, 10:05, 10:10, 10:12]
+
+10:14 → before adding, drop none (all within last 15 mins) → [10:00,10:03,10:05,10:10,10:12,10:14]
+
+
+Now count = 6 → trigger alert.
+
+At 10:20:
+
+Remove entries < 10:05 (older than 10:05)
+
+Queue becomes [10:05,10:10,10:12,10:14].
+
+
+
+---
+
+Q1B. Unique Active Users in Last 5 Minutes
+
+Question
+
+You are getting a stream of events:
+
+(userId, timestampInSeconds)
+
+You want, at any moment, to be able to answer:
+
+> “How many unique users were active in the last 5 minutes?”
+
+
+
+Ask:
+
+What will you store in memory?
+
+How will you update your structure when a new event comes?
+
+How will you answer the query quickly?
+
+
+Plain-English solution idea
+
+Two parts:
+
+1. Per-timestamp list of users
+
+
+2. A global map of userId → count of active events in window
+
+
+
+Data structures
+
+A queue of events: each event is (userId, timestamp).
+
+A hash map: userId → activeCount (how many events of this user are still in the last 5 minutes).
+
+
+On new event (user U at time t):
+
+1. Push (U, t) to the back of the queue.
+
+
+2. Increase activeCount[U] by 1.
+
+
+3. Remove old events from the front of the queue while their timestamps < t - 5 minutes:
+
+For each removed event with user X:
+
+Decrease activeCount[X].
+
+If activeCount[X] becomes 0, delete X from the map.
+
+
+
+
+
+To answer “how many unique users?”
+Just return the size of the map (number of keys).
+
+Tiny example
+
+Events (user, time):
+
+(A, 10:00), (A, 10:01), (B, 10:02), (C, 10:04)
+
+
+At time 10:04:
+
+Queue has 4 events, map: {A:2, B:1, C:1} → unique users = 3.
+
+
+At time 10:07, new event (D, 10:07):
+
+Remove events older than 10:02 (10:07 – 5 mins):
+
+Remove (A, 10:00) → A:2→1
+
+Remove (A, 10:01) → A:1→0 → remove A from map
+
+
+Add (D, 10:07) → D:1
+Now map has {B:1, C:1, D:1} → 3 unique users.
+
+
+
+---
+
+Q1C. Real-Time “Top K Most Visited Pages” in Last 10 Minutes
+
+Question
+
+You get a stream of page views:
+
+(userId, pageId, timestampInSeconds)
+
+You want a function:
+
+> topKPages(currentTime, K)
+that returns the K most viewed pages in the last 10 minutes.
+
+
+
+Ask:
+
+How will you store data so that you don’t keep the whole history?
+
+How will you update counts as time moves forward?
+
+
+Plain-English solution idea
+
+You need:
+
+1. A queue of events (pageId, timestamp) to slide the time window.
+
+
+2. A map: pageId → count in last 10 minutes.
+
+
+
+When a view (pageId P, time t) comes:
+
+1. Add (P, t) to back of the queue.
+
+
+2. Increase count of P in the map.
+
+
+
+Then:
+
+3. While the event at front of queue has timestamp < t - 10 minutes:
+
+Remove it from queue.
+
+Suppose it was for page Q:
+
+Decrease count of Q.
+
+If count of Q becomes 0, remove Q from map.
+
+
+
+
+
+To get top K pages:
+
+Simple version: iterate over all entries in the map and use a small min-heap of size K:
+
+Push (count, pageId) into heap.
+
+If heap size > K, pop smallest.
+
+At the end, heap has top K.
+
+
+
+For large-scale system, you would discuss approximations or more sophisticated structures, but this is good for algorithmic reasoning.
+
+Tiny example
+
+Say K=2, last 10 minutes window.
+
+Views:
+
+10:00 page A
+
+10:01 page B
+
+10:02 page A
+
+10:05 page C
+
+10:09 page A
+
+
+At 10:09:
+
+Counts: A:3, B:1, C:1 → top 2 → [A, B or C].
+
+
+At 10:13 new view page B:
+
+Remove events older than 10:03 (10:13–10):
+
+Remove 10:00 A → A:3→2
+
+Remove 10:01 B → B:1→0 (remove B from map)
+
+Remove 10:02 A → A:2→1
+
+
+Add 10:13 B → B:1
+Now counts: A:1, B:1, C:1 → any 2 are top 2.
+
+
+
+---
+
+Q1D. Detect “Bursty” Devices in an IoT System
+
+Question
+
+You have IoT devices sending sensor data:
+
+(deviceId, readingValue, timestampInSeconds)
+
+You want to detect devices that suddenly become too chatty:
+
+> If any device sends more than 100 readings in any 1-minute window, flag it as “bursty”.
+
+
+
+Ask:
+
+How will you track per-device message rates in the last 1 minute?
+
+How to handle thousands of devices?
+
+
+Plain-English solution idea
+
+Almost same pattern as Q1/Q1A, but now per device message rate.
+
+For each device:
+
+A queue/list of timestamps of its recent messages.
+
+
+On new reading (D, value, t):
+
+1. For device D, remove from its queue all timestamps < t - 60 seconds.
+
+
+2. Add t to the queue.
+
+
+3. If queue size > 100 → D is bursty → raise alert.
+
+
+
+If there are thousands of devices, we only store queues for devices that have recent activity. If a device becomes quiet, its queue will empty out and can be removed from memory.
+
+Tiny example
+
+Device X sends 101 readings between 10:00:00 and 10:00:59.
+
+At the time of the 101st reading within that interval, queue size=101 → flag bursty.
+
+
+---
+
+Q1E. Track “Users with Multiple Cities in Short Time”
+
+Question
+
+You see login events with IP-based city information:
+
+(userId, city, timestampInSeconds)
+
+You want to detect if a user appears to “jump cities” too fast, for example:
+
+If the same user logs in from 3 or more different cities within 1 hour, raise a suspicious-travel alert.
+
+
+Ask:
+
+What will you store for each user?
+
+How will you update this per event?
+
+
+Plain-English solution idea
+
+For each user, we care about:
+
+Recent logins in the last 1 hour.
+
+The set of distinct cities in that recent hour.
+
+
+Data per userId:
+
+A queue of (city, timestamp) for last 1 hour.
+
+A map: city → count (how many logins from this city in the last hour).
+
+
+On new login (user U, city C, time t):
+
+1. Remove old logins for U where timestamp < t - 1 hour:
+
+For each removed (city X):
+
+Decrease count of X in U’s city map.
+
+If count of X becomes 0, remove that city from the map.
+
+
+
+
+2. Add (C, t) to U’s queue.
+
+
+3. Increase count of C in U’s city map.
+
+
+4. Now check: how many distinct cities does U’s city map have?
+
+If ≥ 3 → suspicious-travel alert.
+
+
+
+
+Tiny example
+
+User A:
+
+10:00 from Pune
+
+10:20 from Mumbai
+
+10:40 from Delhi
+
+
+All within 1 hour window → 3 cities → raise alert.
+
+If one of them was at 08:00, it would fall out of the last-hour window when evaluating later events.
+
+
+---
+
+Q1F. Monitor “Abnormal Spike in Requests to One Endpoint”
+
+Question
+
+You have a web service with several endpoints (like /login, /transfer, /profile, etc.).
+You see events:
+
+(endpoint, timestampInSeconds)
+
+You want to detect:
+
+> If an endpoint receives traffic 3 times higher than its normal average in any 5-minute window, raise an anomaly alert.
+
+
+
+You may assume you know the long-term average requests per 5 minutes for each endpoint (say from historical data).
+
+Ask:
+
+What do you store in memory per endpoint in real time?
+
+How do you compute the current 5-minute count and compare with its normal?
+
+
+Plain-English solution idea
+
+For each endpoint E:
+
+We know baselineRate[E] = typical number of requests in 5 minutes (e.g., 200).
+
+We maintain a queue of timestamps of recent requests (last 5 minutes).
+
+
+On each event (E, t):
+
+1. Remove all timestamps from E’s queue that are < t - 5 minutes.
+
+
+2. Add t to the queue.
+
+
+3. Let currentCount = size of queue.
+
+
+4. If currentCount > 3 * baselineRate[E] → anomaly.
+
+
+
+Tiny example
+
+Endpoint /transfer normally gets 100 requests/5 minutes.
+
+Now in the last 5 minutes, it gets 320 requests.
+
+When currentCount > 3 * 100 = 300 → trigger alert.
+
+
+---
+
+Q1G. Detect “Too Many Different Recipients per Sender” in Last Hour
+
+Question
+
+You have email-like events:
+
+(senderId, recipientId, timestampInSeconds)
+
+You want to flag a sender who, in any 1-hour window, sends emails to more than 50 distinct recipients.
+This could indicate spam.
+
+Ask:
+
+How will you track per sender:
+
+The recent emails (last hour),
+
+The set of distinct recipients?
+
+
+
+Plain-English solution idea
+
+Per senderId S, maintain:
+
+A queue of (recipientId, timestamp) for last 1 hour.
+
+A map: recipientId → count of emails to that recipient within last hour.
+
+
+On new email (S, R, t):
+
+1. Remove from queue all entries of S with timestamp < t - 1 hour:
+
+For each removed (R_old, t_old):
+
+Decrease count of R_old.
+
+If count becomes 0, remove R_old from map.
+
+
+
+
+2. Add (R, t) to queue.
+
+
+3. Increase count of R in map.
+
+
+4. Now, if number of keys in map > 50 → flag S as potential spammer.
+
+
+
+Tiny example
+
+Sender S sends to recipients:
+
+50 different recipients in 40 minutes → map size = 50 → still within limit.
+
+Sends 51st unique recipient at 45th minute → map size = 51 → alert.
+
+
+
+---
+
+Q1H. Track “Moving Average & Sudden Jumps” for Stock Price Stream
+
+Question
+
+You receive a continuous price stream for a stock:
+
+(price, timestampInSeconds)
+
+You want to:
+
+1. Maintain a moving average price for the last N minutes.
+
+
+2. Raise an alert if the current price is more than 10% away from the moving average.
+
+
+
+Ask:
+
+What will you store in memory?
+
+How will you update the moving average with each new price?
+
+
+Plain-English solution idea
+
+We want:
+
+The sum of prices in the last N minutes.
+
+The count of prices in the last N minutes.
+
+To be able to remove old prices.
+
+
+Use a queue of (price, timestamp).
+
+For each new (p, t):
+
+1. Remove old entries with timestamp < t - N minutes:
+
+For each removed (p_old, t_old):
+
+Subtract p_old from sum.
+
+Decrease count.
+
+
+
+
+2. Add (p, t):
+
+Increase sum by p.
+
+Increase count by 1.
+
+
+
+
+Now moving average is avg = sum / count.
+
+Compare:
+
+If p > 1.1 * avg or p < 0.9 * avg → price deviated more than 10% → alert.
+
+
+Tiny example
+
+Last N minutes prices:
+100, 102, 101, 103 → avg ≈ 101.5
+
+New price = 113:
+
+113 / 101.5 ≈ 1.113 (>1.10) → >10% jump → alert.
+
+
+
+---
+
+If you want, next I can:
+
+Turn all streaming-type questions (original Q1 + these) into a single PDF-style script with:
+
+question (simple)
+
+what to look for in answers
+
+follow-up twists you can add in the interview.
