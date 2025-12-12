@@ -1,0 +1,25 @@
+Here’s a clean recipe to build the CLI (extensions/cli) without pulling in binaries:
+
+Prep the SDK dependency (from repo root)
+cd packages/dbsaicle-sdk/typescript/api
+npm install
+npm run build (generates api/dist)
+Build the SDK bundle (still under packages/dbsaicle-sdk/typescript)
+cd ..
+If you have bash: npm run build (runs build.sh, tsc + copies api/dist into dist/api/dist)
+If not, do the equivalent:
+npm install
+npx tsc
+mkdir -p dist/api/dist
+cp -r api/dist/* dist/api/dist/
+cp api/package.json dist/api/
+Build the CLI itself
+cd ../../extensions/cli
+npm install --install-links=false
+npm run build (runs validate + esbuild bundle; outputs dist/index.js and launcher dist/cn.js)
+Run the CLI locally
+From extensions/cli: node dist/cn.js (or node dist/index.js)
+Notes:
+
+The package version is already 0.0.1.
+You may see Node engine warnings if your Node < 20.19; they’re expected and non-blocking for the build.
