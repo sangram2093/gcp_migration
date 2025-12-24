@@ -3,6 +3,10 @@ curl -X POST -H "Content-Type: application/json" \
   "http://127.0.0.1:8080/messages/?session_id=9f3b1c2d4e5f..."
 
 curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
+  "http://127.0.0.1:8080/messages/?session_id=YOUR_SESSION_ID"
+
+curl -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' \
   "http://127.0.0.1:8080/messages/?session_id=9f3b1c2d4e5f..."
 
