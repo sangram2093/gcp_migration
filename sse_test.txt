@@ -1,0 +1,11 @@
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"1.0","capabilities":{},"clientInfo":{"name":"curl-client","version":"1.0"}}}' \
+  "http://127.0.0.1:8080/messages/?session_id=9f3b1c2d4e5f..."
+
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' \
+  "http://127.0.0.1:8080/messages/?session_id=9f3b1c2d4e5f..."
+
+  curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_incident_by_number","arguments":{"number":"INC0012345"}}}' \
+  "http://127.0.0.1:8080/messages/?session_id=9f3b1c2d4e5f..."
