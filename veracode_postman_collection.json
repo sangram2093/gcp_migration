@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "DbSaicle Veracode Pipeline Scan",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Pipeline Scan API calls with HMAC auth pre-request script."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "const crypto = require('crypto-js');",
+          "",
+          "function hmac256(data, key, hex) {",
+          "  const hash = crypto.HmacSHA256(data, key);",
+          "  return hex ? crypto.enc.Hex.stringify(hash) : hash;",
+          "}",
+          "",
+          "function hexToWordArray(hex) {",
+          "  return crypto.enc.Hex.parse(hex);",
+          "}",
+          "",
+          "const apiId = pm.environment.get('veracode_api_id');",
+          "const apiKey = pm.environment.get('veracode_api_key');",
+          "if (!apiId || !apiKey) {",
+          "  throw new Error('Missing veracode_api_id or veracode_api_key');",
+          "}",
+          "",
+          "const method = pm.request.method.toUpperCase();",
+          "const parsedUrl = new URL(pm.request.url.toString());",
+          "const host = parsedUrl.host;",
+          "const path = parsedUrl.pathname + parsedUrl.search;",
+          "",
+          "const data = `id=${apiId}&host=${host}&url=${path}&method=${method}`;",
+          "const timestamp = Date.now().toString();",
+          "const nonce = crypto.lib.WordArray.random(16).toString();",
+          "",
+          "const hashedNonce = hmac256(hexToWordArray(nonce), hexToWordArray(apiKey));",
+          "const hashedTimestamp = hmac256(timestamp, hashedNonce);",
+          "const hashedVersion = hmac256('vcode_request_version_1', hashedTimestamp);",
+          "const signature = hmac256(data, hashedVersion, 'hex');",
+          "",
+          "const authHeader = `VERACODE-HMAC-SHA-256 id=${apiId},ts=${timestamp},nonce=${nonce},sig=${signature}`;",
+          "",
+          "pm.request.headers.upsert({ key: 'Authorization', value: authHeader });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'User-Agent', value: 'Postman-Veracode' });"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.veracode.com/pipeline_scan/v1" },
+    { "key": "scan_id", "value": "" },
+    { "key": "segment_id", "value": "0" },
+    { "key": "artifact_name", "value": "" },
+    { "key": "artifact_size", "value": "" },
+    { "key": "artifact_sha256", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create Scan",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/scans",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binary_name\": \"{{artifact_name}}\",\n  \"binary_size\": {{artifact_size}},\n  \"binary_hash\": \"{{artifact_sha256}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Upload Segment",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/scans/{{scan_id}}/segments/{{segment_id}}",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "file", "type": "file", "src": "" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Start Scan",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/scans/{{scan_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"scan_status\": \"STARTED\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get Scan Status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/scans/{{scan_id}}"
+      }
+    },
+    {
+      "name": "Get Findings",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/scans/{{scan_id}}/findings"
+      }
+    },
+    {
+      "name": "Cancel Scan",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/scans/{{scan_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"scan_status\": \"CANCELLED\"\n}"
+        }
+      }
+    }
+  ]
+}
