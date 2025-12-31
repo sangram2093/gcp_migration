@@ -1,0 +1,37 @@
+const crypto = require('crypto-js');
+
+function hmac256(data, key, encoding) {
+  const hash = crypto.HmacSHA256(data, key);
+  return encoding ? crypto.enc.Hex.stringify(hash) : hash;
+}
+
+function getByteArray(hex) {
+  const bytes = [];
+  for (let i = 0; i < hex.length - 1; i += 2) {
+    bytes.push(parseInt(hex.substr(i, 2), 16));
+  }
+  return crypto.lib.WordArray.create(bytes);
+}
+
+const apiId = pm.environment.get('veracode_api_id');
+const apiKey = pm.environment.get('veracode_api_key');
+
+const method = pm.request.method.toUpperCase();
+const url = new URL(pm.request.url.toString());
+const host = url.host;
+const path = url.pathname + url.search;
+
+const data = `id=${apiId}&host=${host}&url=${path}&method=${method}`;
+const timestamp = Date.now().toString();
+const nonce = crypto.lib.WordArray.random(16).toString();
+
+const hashedNonce = hmac256(getByteArray(nonce), getByteArray(apiKey));
+const hashedTimestamp = hmac256(timestamp, hashedNonce);
+const hashedVersion = hmac256("vcode_request_version_1", hashedTimestamp);
+const signature = hmac256(data, hashedVersion, "hex");
+
+const authHeader = `VERACODE-HMAC-SHA-256 id=${apiId},ts=${timestamp},nonce=${nonce},sig=${signature}`;
+
+pm.request.headers.upsert({ key: 'Authorization', value: authHeader });
+pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });
+pm.request.headers.upsert({ key: 'User-Agent', value: 'Postman-Veracode' });
