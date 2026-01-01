@@ -1,0 +1,231 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+\title{Shift-Left Remediation with dbSAIcle: OSS and Veracode Findings Resolution for Developers}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper presents a remediation-first approach to shift-left security using
+dbSAIcle. It addresses a common failure mode: OSS and Veracode scans performed
+at release time, which frequently trigger SDLC gate failures and delay business
+deliveries. dbSAIcle embeds scanning and remediation workflows inside the IDE,
+reducing context switching and enabling developers to fix findings during
+development. The result is a repeatable loop of triage, fix, rebuild, and
+rescan, with auditable artifacts (scan IDs, findings JSON, fix commits, and
+passing builds) that prove outcomes.
+\end{abstract}
+
+\section{Executive Overview}
+
+Security shifts left only when remediation becomes routine, not when scanning is available. In many teams, OSS and Veracode scans are still performed at release time on production-bound artifacts. When high or critical findings appear, releases are blocked, delivery commitments are missed, and emergency change processes are triggered. dbSAIcle moves this work into daily development and makes remediation a normal, low-friction habit.
+
+This paper focuses on how dbSAIcle enables remediation-first workflows for two critical classes of findings:
+
+\begin{itemize}[leftmargin=*]
+  \item Open-source dependency vulnerabilities (OSS)
+  \item Static analysis findings from build artifacts (Veracode pipeline scan)
+\end{itemize}
+
+The scans are inputs. The real value is a repeatable loop that helps developers remediate high and critical findings quickly, validate fixes, and keep builds healthy.
+
+\section{Current State: Release-Time Scans and Risks}
+
+Release-time scanning introduces preventable risk and disruption:
+\begin{itemize}[leftmargin=*]
+  \item SDLC gate failures that block releases and create delivery delays.
+  \item Emergency changes, rollback risk, and escalation cycles.
+  \item Missed business commitments and reputational impact.
+  \item Compliance exposure when vulnerabilities are discovered too late.
+  \item High context switching as developers jump between multiple tools.
+\end{itemize}
+
+\section{Why Remediation-First Matters}
+
+Late security findings increase cost, delay releases, and create context switching. A remediation-first approach changes the economics by:
+
+\begin{itemize}[leftmargin=*]
+  \item Fixing issues while the developer still has context
+  \item Reducing rework caused by late-stage findings
+  \item Preventing release gate failures and last-minute escalations
+  \item Converting security into a daily, measurable workflow
+\end{itemize}
+
+\section{What Changes with dbSAIcle}
+
+dbSAIcle removes friction from security remediation:
+\begin{itemize}[leftmargin=*]
+  \item In-editor scans and workflows replace tool hopping.
+  \item Findings are presented with clear remediation steps.
+  \item Fixes are validated in the same loop (rebuild and rescan).
+  \item Proof artifacts connect scans to fixes and passing builds.
+\end{itemize}
+
+\section{Remediation Scope and Inputs}
+
+dbSAIcle provides two scanning tools that feed remediation workflows:
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{oss\_vulnerability\_scan} gathers dependency findings across Maven, Gradle, and npm.
+  \item \texttt{veracode\_pipeline\_scan} returns static analysis findings from a build artifact.
+\end{itemize}
+
+Remediation is the focus: triage, fix, rebuild, and rescan until high and critical findings are cleared or explicitly accepted.
+
+\section{Proof and Auditability}
+
+Every remediation outcome is tied to verifiable artifacts:
+\begin{itemize}[leftmargin=*]
+  \item Scan IDs and timestamps for each OSS and Veracode scan.
+  \item Findings JSON captured with artifact metadata.
+  \item Fix commits and pull requests referencing the findings.
+  \item CI logs showing passing builds after remediation.
+\end{itemize}
+
+\section{The Tools That Power Remediation}
+
+\subsection{OSS Vulnerability Scan}
+
+Scans dependency graphs and returns a Markdown report with severity, vulnerable versions, and recommended fixes. It is designed for fast, targeted remediation rather than exhaustive reporting.
+
+Key outcomes:
+\begin{itemize}[leftmargin=*]
+  \item Clear remediation targets
+  \item Direct or transitive dependency visibility
+  \item Fewer cycles to resolve high/critical items
+\end{itemize}
+
+\subsection{Veracode Pipeline Scan}
+
+Performs static analysis on build artifacts (JAR/WAR/EAR/ZIP/APK) and returns findings with severity and location details. It supports local and CI workflows and is fast enough to run during active remediation.
+
+Key outcomes:
+\begin{itemize}[leftmargin=*]
+  \item Actionable findings tied to code locations
+  \item Repeatable remediation loop before merge
+  \item Consistent gates for high-risk changes
+\end{itemize}
+
+\section{Remediation Workflow Summary}
+
+Developers can run both tools from the dbSAIcle plugin in VS Code or IntelliJ IDEA and follow a standardized loop:
+
+\begin{enumerate}[leftmargin=*]
+  \item Build the project (with tests first, then without tests during remediation).
+  \item Run \texttt{oss\_vulnerability\_scan} and triage high/critical findings.
+  \item Run \texttt{veracode\_pipeline\_scan} on the build artifact and triage high/critical findings.
+  \item Apply fixes, rebuild, and rescan until results are clean or accepted.
+\end{enumerate}
+
+\section{Developer Experience (Low Friction)}
+
+Developers can run the workflows with simple prompts in English and stay in their editor:
+\begin{itemize}[leftmargin=*]
+  \item ``Scan this repo for OSS vulnerabilities and summarize high/critical fixes.''
+  \item ``Run Veracode scan on the latest build artifact and show findings.''
+\end{itemize}
+
+\section{Workflow References}
+
+\begin{itemize}[leftmargin=*]
+  \item OSS Remediation Workflow: \href{https://stash.gto.intranet.db.com:8082/users/sangram.jadhav_db.com/repos/dbsaicle-workflows/browse/oss_remediation_workflow.md}{OSS\_Remediation\_Workflow\_Link}
+  \item Veracode Remediation Workflow: \href{https://stash.gto.intranet.db.com:8082/users/sangram.jadhav_db.com/repos/dbsaicle-workflows/browse/veracode-remediation-workflow.md}{Veracode\_Remediation\_Workflow\_Link}
+\end{itemize}
+
+\section{Configure dbSAIcle for Remediation}
+
+Add the following to your \texttt{config.yaml} (adjust URLs and secrets as needed). Environment variables are supported for secrets.
+
+\begin{verbatim}
+ossVulnerability:
+  jfrogPlatformUrl: "https://your-jfrog-host"
+  jfrogAccessToken: "${JFROG_ACCESS_TOKEN}"
+  mavenCommand: "/path/to/mvn" # optional
+  mavenHome: "/path/to/maven"  # optional
+
+veracode:
+  apiKeyId: "${VERACODE_API_KEY_ID}"
+  apiKeySecret: "${VERACODE_API_KEY_SECRET}"
+  baseUrl: "https://api.veracode.com" # optional
+  userAgent: "dbSAIcle-veracode"       # optional
+\end{verbatim}
+
+\section{Example Usage (Tool and Workflow)}
+
+\subsection{OSS Remediation Example}
+
+\begin{enumerate}[leftmargin=*]
+  \item Ask for the project root.
+  \item Run the tool:
+\end{enumerate}
+
+\begin{verbatim}
+{
+  "project_dir": "/path/to/project-root"
+}
+\end{verbatim}
+
+\begin{enumerate}[leftmargin=*]
+  \setcounter{enumi}{2}
+  \item Fix high/critical dependency findings.
+  \item Re-run the tool to confirm remediation.
+\end{enumerate}
+
+\subsection{Veracode Remediation Example}
+
+\begin{enumerate}[leftmargin=*]
+  \item Build the artifact (JAR/WAR/ZIP/APK).
+  \item If the artifact is larger than 200 MB, package smaller outputs
+        (for Java, \texttt{target/classes}) into a ZIP and use that as the artifact.
+  \item Run the tool:
+\end{enumerate}
+
+\begin{verbatim}
+{
+  "artifact_path": "/path/to/artifact-or-zip",
+  "output_json_path": "veracode-findings.json"
+}
+\end{verbatim}
+
+\begin{enumerate}[leftmargin=*]
+  \setcounter{enumi}{3}
+  \item Fix high/critical findings and rebuild without tests.
+  \item Re-run the tool until results are acceptable.
+\end{enumerate}
+
+\section{Productivity and Quality Impact}
+
+Remediation-first workflows drive measurable improvements:
+
+\begin{itemize}[leftmargin=*]
+  \item Lower remediation time: fixes happen while context is fresh.
+  \item Reduced rework: findings are handled before they cascade downstream.
+  \item Higher release confidence: repeated scans validate fixes quickly.
+  \item Fewer release gate failures and fewer last-minute escalations.
+  \item Less context switching and faster developer focus recovery.
+\end{itemize}
+
+For statistical evaluation, ROI modeling, and evidence-backed results, see the companion productivity paper.
+
+\section{Recommended Adoption Path}
+
+\begin{enumerate}[leftmargin=*]
+  \item Pilot with 1 to 2 teams on active services.
+  \item Track time-to-remediate and defect rates for 2 to 4 sprints.
+  \item Expand to more teams after a positive signal.
+  \item Establish policy: high/critical findings must be remediated before merge.
+\end{enumerate}
+
+\section{Conclusion}
+
+dbSAIcle enables remediation-focused security that is practical for developers. The OSS and Veracode tools provide fast, actionable inputs, while the workflows turn scanning into measurable remediation outcomes. This is a sustainable shift-left strategy that improves security without slowing delivery.
+
+\end{document}
