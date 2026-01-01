@@ -1,0 +1,41 @@
+Outcomes modeled probabilistically (Section 4: Data and Measurements)
+
+Time‑to‑remediate (TTR), backlog count, rework rate, and optional cycle time are treated as random variables rather than fixed values.
+These are the “y” variables the Bayesian model explains.
+Treatment variables define tool usage (Section 4.2)
+
+oss_usage_it, vera_usage_it, and their interaction are the treatment signals.
+This makes tool usage the causal driver the model is trying to infer.
+Hierarchical Bayesian structure (Section 5.1)
+
+Log‑normal model for TTR:
+log(TTR_it) ~ Normal(mu_it, sigma)
+mu_it includes team and project random effects, time effects, usage effects, and controls:
+mu_it = alpha_team + alpha_proj + delta_t
+       + beta_oss * oss_usage_it
+       + beta_vera * vera_usage_it
+       + beta_int * (oss_usage_it * vera_usage_it)
+       + gamma * X_it
+Backlog is modeled with a Negative Binomial:
+backlog_it ~ NegBin(lambda_it, phi)
+log(lambda_it) = ...
+Priors encode weak assumptions (Section 5.2)
+
+Tool effect coefficients (beta_*) have Normal(0, 0.5) priors after standardization.
+Team/project random effects are hierarchical with HalfNormal priors for variance.
+This expresses “tools might help or hurt, but large effects are less likely.”
+Posterior inference for decision‑grade results (Section 6)
+
+The paper uses Bayesian posterior probabilities, not just p‑values:
+P(beta_oss < 0) and P(beta_vera < 0) are the probabilities that the tools reduce TTR.
+Credible intervals (not confidence intervals) quantify uncertainty.
+ROI is derived from posterior samples (Section 7.4)
+
+ROI is not modeled directly; it’s computed by propagating posterior samples into a cost‑savings formula:
+ROI = (time_saved * cost_per_hour - tool_cost) / tool_cost
+This yields a distribution of ROI (shown as a density plot).
+Sample posterior plots (Section 8)
+
+Two figures illustrate posterior densities of tool effect sizes and ROI distributions.
+These are placeholders, but structurally they represent the Bayesian posterior.
+If you want, I can add a short “Bayesian Model Summary” box to the paper or annotate the equations so it’s easier for non‑statisticians to follow.
