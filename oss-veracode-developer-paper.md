@@ -1,8 +1,10 @@
-# Shift-Left Remediation with DbSaicle: OSS and Veracode Findings Resolution for Developers
+# Shift-Left Remediation with dbSAIcle: OSS and Veracode Findings Resolution for Developers
 
 ## Executive Overview
 
-Security shifts left only when remediation becomes routine, not when scanning is available. This paper focuses on how DbSaicle enables remediation-first workflows for two critical classes of findings:
+Security shifts left only when remediation becomes routine, not when scanning is available. In many teams, OSS and Veracode scans are still performed at release time on production-bound artifacts. When high or critical findings appear, releases are blocked, delivery commitments are missed, and emergency change processes are triggered. dbSAIcle is intended to move this work into daily development and make remediation a normal, low-friction habit.
+
+This paper focuses on how dbSAIcle enables remediation-first workflows for two critical classes of findings:
 
 - Open-source dependency vulnerabilities (OSS)
 - Static analysis findings from build artifacts (Veracode pipeline scan)
@@ -15,11 +17,12 @@ Late security findings increase cost, delay releases, and create context switchi
 
 - Fixing issues while the developer still has context
 - Reducing rework caused by late-stage findings
+- Preventing release gate failures and last-minute escalations
 - Converting security into a daily, measurable workflow
 
 ## Remediation Scope and Inputs
 
-DbSaicle provides two scanning tools that feed remediation workflows:
+dbSAIcle is expected to provide two scanning tools that feed remediation workflows:
 
 - `oss_vulnerability_scan` gathers dependency findings across Maven, Gradle, and npm.
 - `veracode_pipeline_scan` returns static analysis findings from a build artifact.
@@ -48,7 +51,7 @@ Key outcomes:
 
 ## Remediation Workflow Summary
 
-Developers can run both tools from the DbSaicle plugin in VS Code or IntelliJ IDEA and follow a standardized loop:
+Developers will be able to run both tools from the dbSAIcle plugin in VS Code or IntelliJ IDEA and follow a standardized loop:
 
 1. Build the project (with tests first, then without tests during remediation).
 2. Run `oss_vulnerability_scan` and triage high/critical findings.
@@ -57,16 +60,10 @@ Developers can run both tools from the DbSaicle plugin in VS Code or IntelliJ ID
 
 ## Workflow References
 
-- OSS Remediation Workflow: <<OSS_REMEDIATION_WORKFLOW_LINK>>
-- Veracode Remediation Workflow: <<VERACODE_REMEDIATION_WORKFLOW_LINK>>
+- OSS Remediation Workflow: [OSS_Remediation_Workflow_Link](https://stash.gto.intranet.db.com:8082/users/sangram.jadhav_db.com/repos/dbsaicle-workflows/browse/oss_remediation_workflow.md)
+- Veracode Remediation Workflow: [Veracode_Remediation_Workflow_Link](https://stash.gto.intranet.db.com:8082/users/sangram.jadhav_db.com/repos/dbsaicle-workflows/browse/veracode-remediation-workflow.md)
 
-## Infographic Placeholder
-
-Use this placeholder for a visual remediation loop (scan -> triage -> fix -> rebuild -> rescan):
-
-![Remediation workflow infographic placeholder](path/to/oss-veracode-remediation-infographic.png)
-
-## Configure DbSaicle for Remediation
+## Configure dbSAIcle for Remediation
 
 Add the following to your `config.yaml` (adjust URLs and secrets as needed). Environment variables are supported for secrets.
 
@@ -81,7 +78,7 @@ veracode:
   apiKeyId: "${VERACODE_API_KEY_ID}"
   apiKeySecret: "${VERACODE_API_KEY_SECRET}"
   baseUrl: "https://api.veracode.com" # optional
-  userAgent: "dbsaicle-veracode"       # optional
+  userAgent: "dbSAIcle-veracode"       # optional
 ```
 
 ## Example Usage (Tool + Workflow)
@@ -118,11 +115,13 @@ veracode:
 
 ## Productivity and Quality Impact
 
-Remediation-first workflows drive measurable improvements:
+Remediation-first workflows are expected to drive measurable improvements:
 
 - **Lower remediation time**: fixes happen while context is fresh.
 - **Reduced rework**: findings are handled before they cascade downstream.
 - **Higher release confidence**: repeated scans validate fixes quickly.
+- **Fewer release gate failures**: issues are addressed before release.
+- **Lower context switching**: scans and fixes happen inside the IDE.
 
 ## Recommended Adoption Path
 
@@ -133,4 +132,4 @@ Remediation-first workflows drive measurable improvements:
 
 ## Conclusion
 
-DbSaicle enables remediation-focused security that is practical for developers. The OSS and Veracode tools provide fast, actionable inputs, while the workflows turn scanning into measurable remediation outcomes. This is a sustainable shift-left strategy that improves security without slowing delivery.
+dbSAIcle aims to enable remediation-focused security that is practical for developers. The OSS and Veracode tools provide fast, actionable inputs, while the workflows are designed to turn scanning into measurable remediation outcomes. This is a sustainable shift-left strategy that improves security without slowing delivery.

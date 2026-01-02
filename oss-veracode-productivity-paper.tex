@@ -10,7 +10,7 @@
 \usepackage{xcolor}
 \pgfplotsset{compat=1.18}
 
-\title{Bayesian Evaluation of Developer Productivity Gains\\from OSS Vulnerability Scanning and Veracode Pipeline Scans}
+\title{Bayesian Projection of Developer Productivity Gains\\from OSS Vulnerability Scanning and Veracode Pipeline Scans}
 \author{dbSAIcle Research}
 \date{\today}
 
@@ -18,21 +18,21 @@
 \maketitle
 
 \begin{abstract}
-This paper presents an evidence-backed evaluation of developer productivity gains from two automated security tools embedded in dbSAIcle: an OSS vulnerability scan and a Veracode pipeline scan. We combine proof artifacts (scan logs, findings JSON, fix commits, CI logs) with a hierarchical Bayesian model to estimate reductions in time-to-remediate (TTR), vulnerability backlog, release gate failures, and context switching. A one-month snapshot (two sprints) demonstrates measurable gains and yields posterior probabilities of improvement and economic ROI. The result is a proven, auditable case for shift-left remediation, not just scanning.
+This paper presents a Bayesian projection of developer productivity gains from two automated security tools embedded in dbSAIcle: an OSS vulnerability scan and a Veracode pipeline scan. We outline an evidence plan (scan logs, findings JSON, fix commits, CI logs) and use a hierarchical Bayesian model to estimate expected reductions in time-to-remediate (TTR), vulnerability backlog, release gate failures, and context switching. A one-month scenario (two sprints) illustrates projected gains and yields posterior probabilities of improvement and economic ROI under stated assumptions. The result is a decision-ready forecast for shift-left remediation while dbSAIcle remains in stealth mode.
 \end{abstract}
 
 \section{Introduction}
 Modern software development teams face mounting security obligations while maintaining delivery velocity. In many organizations, OSS and Veracode scans are performed at release time on production-bound artifacts. When high or critical findings appear, SDLC gates fail and releases are delayed. This can trigger missed business commitments, emergency change approvals, rollback risk, and reputational damage. Additional risk includes compliance breaches, SLA violations, and rushed hotfixes under time pressure.
 
-Tool fragmentation adds friction. Developers must jump between build systems, security portals, and ticketing tools, which increases context switching and slows remediation. By embedding scans and remediation workflows inside dbSAIcle, the security loop moves into the development phase and becomes repeatable.
+Tool fragmentation adds friction. Developers must jump between build systems, security portals, and ticketing tools, which increases context switching and slows remediation. By embedding scans and remediation workflows inside dbSAIcle, the security loop is intended to move into the development phase and become repeatable.
 
-This paper evaluates two dbSAIcle tools with an evidence-backed Bayesian framework:
+This paper projects the impact of two dbSAIcle tools with a Bayesian framework:
 \begin{itemize}
   \item \texttt{oss\_vulnerability\_scan}: detects dependency vulnerabilities and produces actionable remediation guidance.
   \item \texttt{veracode\_pipeline\_scan}: performs static analysis on built artifacts with rapid turnaround in CI.
 \end{itemize}
 
-We measure productivity gains using an auditable proof package that links each finding to scan IDs, artifact hashes, fix commits, and passing builds. The Bayesian model quantifies improvement probabilities and effect sizes, while a one-month snapshot (two sprints) shows the magnitude of gains.
+We measure productivity gains using a planned proof package that will link each finding to scan IDs, artifact hashes, fix commits, and passing builds. The Bayesian model quantifies improvement probabilities and effect sizes, while a one-month scenario (two sprints) illustrates the magnitude of expected gains.
 
 \section{Tools Under Study}
 \subsection{OSS Vulnerability Scan}
@@ -41,7 +41,7 @@ The OSS scan tool ingests a project directory and performs dependency analysis f
 \subsection{Veracode Pipeline Scan}
 The Veracode tool uploads an artifact (JAR, WAR, EAR, ZIP, APK) to the pipeline scan API, polls scan status, and retrieves findings. It returns a Markdown report with findings by severity and location.
 
-Both tools are available inside the dbSAIcle plugin and can be invoked with natural-language workflows, reducing context switching and enabling remediation during development.
+Both tools are designed to be available inside the dbSAIcle plugin and can be invoked with natural-language workflows, reducing context switching and enabling remediation during development.
 
 \section{Research Questions}
 \begin{enumerate}
@@ -89,7 +89,7 @@ Both tools are available inside the dbSAIcle plugin and can be invoked with natu
 \end{itemize}
 
 \subsection{Evidence Artifacts (Proof Package)}
-Each finding is linked to concrete artifacts that provide auditability:
+Each finding will be linked to concrete artifacts that provide auditability:
 \begin{itemize}
   \item Scan request and response logs with scan IDs.
   \item Findings JSON stored with checksum and timestamp.
@@ -137,8 +137,8 @@ After standardizing predictors (mean 0, std 1):
 \sigma \sim \text{HalfNormal}(0.5), \quad \phi \sim \text{HalfNormal}(1.0)
 \]
 
-\subsection{Evidence Linkage and Proof}
-Each observation in the model is constructed from an auditable chain: scan ID to findings JSON, findings to fix commit, and fix commit to passing CI build. This linkage provides proof that the measured improvements are not anecdotal; they are tied to verifiable artifacts and release gate outcomes.
+\subsection{Evidence Linkage Plan}
+Each observation in the model is designed to trace an auditable chain: scan ID to findings JSON, findings to fix commit, and fix commit to passing CI build. This linkage is intended to provide proof that measured improvements are tied to verifiable artifacts and release gate outcomes once full data collection is complete.
 
 \subsection{Causal Considerations}
 To reduce selection bias:
@@ -158,8 +158,8 @@ Posterior summaries to report:
   \item Expected hours saved per sprint.
 \end{itemize}
 
-\section{Results: One-Month Evidence Snapshot (Two Sprints)}
-We evaluated a one-month window (two sprints) across eight active repositories. Evidence artifacts (scan IDs, findings JSON, fix commits, CI passes) were collected for each high or critical finding, creating an auditable chain from detection to remediation.
+\section{Projected Results: One-Month Scenario (Two Sprints)}
+We modeled a one-month window (two sprints) across eight active repositories. The values below illustrate a plausible shift-left outcome under conservative assumptions and are presented as scenario projections while dbSAIcle is in stealth mode.
 
 \begin{table}[h]
   \centering
@@ -174,20 +174,20 @@ We evaluated a one-month window (two sprints) across eight active repositories. 
     Context switching per finding (min) & 40 & 15 \\
     \bottomrule
   \end{tabular}
-  \caption{One-month evidence snapshot (two sprints) from artifact-backed telemetry.}
+  \caption{Illustrative one-month scenario (two sprints) for projected gains.}
 \end{table}
 
-\subsection{Bayesian Effect Estimates}
+\subsection{Bayesian Effect Estimates (Projected)}
 \begin{itemize}
-  \item $P(\beta_{oss} < 0) = 0.97$
-  \item Median TTR reduction (OSS) = 58\%, 95\% CI [34\%, 71\%]
-  \item $P(\beta_{vera} < 0) = 0.95$
-  \item Median TTR reduction (Veracode) = 41\%, 95\% CI [18\%, 58\%]
-  \item Interaction effect: $\beta_{int} = -0.11$, 95\% CI [$-0.19, -0.03$]
+  \item $P(\beta_{oss} < 0) = 0.97$ (scenario projection)
+  \item Median TTR reduction (OSS) = 58\%, 95\% CI [34\%, 71\%] (scenario)
+  \item $P(\beta_{vera} < 0) = 0.95$ (scenario projection)
+  \item Median TTR reduction (Veracode) = 41\%, 95\% CI [18\%, 58\%] (scenario)
+  \item Interaction effect: $\beta_{int} = -0.11$, 95\% CI [$-0.19, -0.03$] (scenario)
 \end{itemize}
 
-\subsection{Productivity and ROI}
-Estimated developer hours saved per month: 120, 95\% CI [90, 165]. Using a blended cost rate from finance, the ROI distribution yields a median 2.6x return with a 95\% credible interval of [1.6x, 4.1x].
+\subsection{Productivity and ROI (Projected)}
+Estimated developer hours saved per month: 120, 95\% CI [90, 165] (scenario). Using a blended cost rate from finance, the ROI distribution yields a median 2.6x return with a 95\% credible interval of [1.6x, 4.1x] under the same assumptions.
 
 \section{Sample Figures}
 \pgfmathdeclarefunction{gauss}{2}{%
@@ -214,7 +214,7 @@ Estimated developer hours saved per month: 120, 95\% CI [90, 165]. Using a blend
       \addlegendentry{$\beta_{vera}$}
     \end{axis}
   \end{tikzpicture}
-\caption{Posterior densities for OSS and Veracode effects (one-month evidence snapshot).}
+\caption{Posterior densities for OSS and Veracode effects (illustrative scenario).}
 \label{fig:posterior}
 \end{figure}
 
@@ -231,23 +231,24 @@ Estimated developer hours saved per month: 120, 95\% CI [90, 165]. Using a blend
       \addplot [green!60!black, thick, domain=0.05:6, samples=200] {lognormal(0.6,0.5)};
     \end{axis}
   \end{tikzpicture}
-\caption{ROI distribution from the one-month evidence snapshot.}
+\caption{ROI distribution from the one-month scenario.}
 \label{fig:roi}
 \end{figure}
 
 \section{Discussion}
-The evidence package and Bayesian estimates show consistent improvements in remediation speed, backlog reduction, and release gate stability. The tools convert late-stage security risk into early, actionable work, while eliminating context switching across multiple scan systems. The probabilistic results provide decision-grade confidence that the improvements are real and repeatable.
+The scenario projections and Bayesian estimates indicate potential improvements in remediation speed, backlog reduction, and release gate stability. The tools are designed to convert late-stage security risk into early, actionable work, while reducing context switching across multiple scan systems. The probabilistic results provide decision-grade guidance on expected impact while empirical evidence is being collected.
 
 \section{Threats to Validity}
 \begin{itemize}
   \item Selection bias: early adopters may already be more efficient.
   \item Measurement error: missing or inconsistent timestamps, mitigated by artifact linkage.
   \item External shocks: release pressure or policy changes.
+  \item Model risk: projections depend on assumptions and priors.
 \end{itemize}
 Mitigations include fixed effects, hierarchical modeling, and sensitivity checks.
 
 \section{Conclusion}
-This paper provides an evidence-backed and auditable evaluation of productivity benefits from OSS and Veracode tooling. Bayesian inference delivers decision-grade estimates of improvement probability and ROI, while proof artifacts demonstrate that gains are tied to real fixes and passing builds. The framework is reusable for other developer tooling initiatives.
+This paper provides a Bayesian projection of productivity benefits from OSS and Veracode tooling while dbSAIcle is in stealth mode. The framework delivers decision-grade estimates of expected improvement and ROI, and the planned proof package will connect findings to fixes and passing builds as evidence accumulates. The model is reusable for other developer tooling initiatives.
 
 \appendix
 \section{Example Data Schema}
