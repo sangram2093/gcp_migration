@@ -6,6 +6,8 @@ This workflow helps RTB teams triage a new incident by searching similar past in
 
 Use the incident number or sys_id and confirm it is assigned to RTB.
 
+Tool: `servicenow_get_incident`
+
 Example tool call:
 ```json
 {
@@ -16,7 +18,9 @@ Example tool call:
 
 ## Step 2: Pull incident logs (work notes + comments)
 
-Use the incident sys_id/number to fetch the latest logs.
+Use the incident sys_id/number to fetch the latest logs. The tool will resolve the sys_id and query logs using `element_id` (with a fallback to `documentkey`) for compatibility.
+
+Tool: `servicenow_get_incident_logs`
 
 Example tool call:
 ```json
@@ -41,6 +45,8 @@ Common examples:
 
 Search across historical logs for matches. Filter to resolved/closed incidents and the RTB assignment group.
 
+Tool: `servicenow_search_incident_logs`
+
 Example tool call:
 ```json
 {
@@ -57,6 +63,8 @@ Example tool call:
 
 Search by short description/description as a backup or additional signal.
 
+Tool: `servicenow_list_incidents`
+
 Example tool call:
 ```json
 {
@@ -70,6 +78,8 @@ Example tool call:
 
 For top matches, read incident details and extract `close_notes` and `close_code`.
 
+Tool: `servicenow_get_incident`
+
 Example tool call:
 ```json
 {
@@ -82,6 +92,8 @@ Example tool call:
 
 Use the same keywords to locate KB articles with fix steps.
 
+Tool: `servicenow_list_kb_articles`
+
 Example tool call:
 ```json
 {
@@ -91,7 +103,7 @@ Example tool call:
 }
 ```
 
-Then fetch the full article content:
+Then fetch the full article content (Tool: `servicenow_get_kb_article`):
 ```json
 {
   "kb_id": "KB0012345",
