@@ -208,6 +208,20 @@ Example prompts:
 - "Get KB article KB0012345 with full content."
 - "Get KB article KB0012345 without content."
 
+### `servicenow_create_kb_article`
+Required: `short_description`, `text`, `kb_knowledge_base`
+Optional: `kb_category`, `workflow_state`, `author`, `active`
+
+Example prompts:
+- "Create a KB article for Control-M job failure in the RTB knowledge base."
+
+### `servicenow_update_kb_article`
+Required: `kb_id` (number or sys_id)
+Optional: `short_description`, `text`, `kb_knowledge_base`, `kb_category`, `workflow_state`, `author`, `active`
+
+Example prompts:
+- "Update KB0012345 with the new resolution steps."
+
 ### `servicenow_list_kb_bases`
 Optional: `query`, `active`, `limit`, `offset`
 
@@ -326,6 +340,11 @@ Required: `problem_task_id` (number or sys_id), `fields`
 ### `servicenow_get_problem_task`
 Required: `problem_task_id` (number or sys_id)
 Optional: `fields`, `display_value`, `exclude_reference_link`
+
+### `servicenow_get_problem_task_logs`
+Required: `problem_task_id` (number or sys_id)
+Optional: `elements`, `limit`, `offset`, `order_by`, `order`, `include_problem_task`,
+`fields`, `display_value`, `exclude_reference_link`, `sysparm_query`
 
 ### `servicenow_list_problem_tasks`
 Optional: `query`, `fields`, `display_value`, `exclude_reference_link`, `limit`, `offset`
