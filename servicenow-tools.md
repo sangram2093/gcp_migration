@@ -119,6 +119,64 @@ Example prompts:
 - "Get incident logs for INC0012345."
 - "Get work_notes only for INC0012345 in descending order."
 
+## Problem Management Tools
+
+### `servicenow_create_problem`
+Required: `short_description`
+Optional: `description`, `category`, `subcategory`, `priority`, `impact`,
+`urgency`, `assignment_group`, `assigned_to`, `problem_state`, `state`, `cmdb_ci`,
+`service_offering`, `business_service`, `known_error`, `workaround`,
+`cause_notes`, `fix_notes`, `work_notes`, `comments`, `close_notes`,
+`close_code`, `active`, `parent`, `fields` (object for additional fields)
+
+Example prompts:
+- "Create a problem for repeated Control-M failure with known_error true."
+- "Open a problem with short description 'Batch job delay' and assign to RTB."
+
+### `servicenow_update_problem`
+Required: `problem_id` (number or sys_id)
+Optional: same fields as create (see above), plus `fields` for custom columns
+
+Example prompts:
+- "Update problem PRB0012345 with new work notes and set problem_state=known_error."
+- "Set assignment_group and priority for PRB0012345."
+
+### `servicenow_get_problem`
+Required: `problem_id` (number or sys_id)
+Optional: `fields`, `display_value`, `exclude_reference_link`
+
+Example prompts:
+- "Get problem PRB0012345 with display values."
+
+### `servicenow_list_problems`
+Optional filters: `state`, `problem_state`, `assigned_to`, `assignment_group`,
+`short_description`, `description`, `query`, `custom_field`, `custom_field_value`,
+`custom_field_operator` (default `LIKE`), `active`, `sysparm_query`,
+plus `limit`/`offset`, `fields`, `display_value`, `exclude_reference_link`.
+
+Example prompts:
+- "List problems where short description mentions control-m."
+- "Find problems with description containing 'job failure' in the last 60 days."
+- "Search problems where custom field u_risk_of_recurrencec_desc contains 'high'."
+
+### `servicenow_get_problem_logs`
+Required: `problem_id` (number or sys_id)
+Optional: `elements`, `limit`, `offset`, `order_by`, `order`,
+`include_problem`, `include_task`, `sysparm_query`, `fields`
+
+Example prompts:
+- "Get work notes for PRB0012345."
+- "Fetch problem logs for PRB0012345 and include task-level journal entries."
+
+### `servicenow_get_problem_history`
+Required: `problem_id` (number or sys_id)
+Optional: `history_set_id`, `limit`, `offset`, `order_by`, `order`,
+`include_problem`, `sysparm_query`, `fields`
+
+Example prompts:
+- "Get problem history lines for PRB0012345."
+- "Use history_set_id 1234... to fetch detailed field changes."
+
 ## Service Catalog Tools
 
 ### `servicenow_list_catalog_items`
