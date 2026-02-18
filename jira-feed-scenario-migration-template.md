@@ -88,9 +88,13 @@ For all feed entries under one surveillance migration batch:
    - `epicLink` = `epicKeyForFeatures` (mandatory)
 2. Set feature acceptance criteria using `JiraSetAcceptanceCriteria`.
 3. Validate feature AC with `JiraGetAcceptanceCriteria`.
-3. For each feed in metadata:
-   1. Create one Story under the same project.
-   2. Link Story <-> Feature using `JiraSetDependency` (preferred link type: `Relates`).
+   3. For each feed in metadata:
+      1. Create one Story under the same project.
+      2. Link Story -> Feature using `JiraSetDependency` with:
+      - `linkType = "Relates"`
+      - `inwardIssueKey = storyKey`
+      - `outwardIssueKey = featureKey`
+      - If Jira rejects the link type, use the exact configured issue-link type name from that Jira instance (name must match exactly).
    3. Do not create sub-tasks until Story-Feature link succeeds.
    4. Create 9 Sub-tasks under that Story (from the feed sub-task template rows), ensuring `parentKey = createdStoryKey`.
    5. For each created sub-task:
@@ -108,7 +112,11 @@ For each scenario in metadata:
 2. Set feature acceptance criteria using `JiraSetAcceptanceCriteria`.
 3. Validate feature AC with `JiraGetAcceptanceCriteria`.
 4. Create one Story for that scenario.
-5. Link Story <-> Feature using `JiraSetDependency` (preferred link type: `Relates`).
+5. Link Story -> Feature using `JiraSetDependency` with:
+   - `linkType = "Relates"`
+   - `inwardIssueKey = storyKey`
+   - `outwardIssueKey = featureKey`
+   - If Jira rejects the link type, use the exact configured issue-link type name from that Jira instance (name must match exactly).
 6. Do not create sub-tasks until Story-Feature link succeeds.
 7. Create 15 Sub-tasks under that Story (from scenario template sub-task rows), ensuring `parentKey = createdStoryKey`.
 8. For each created sub-task:
@@ -126,12 +134,23 @@ For each scenario in metadata:
 - Sub-task description: from `Sub-Task Description`.
 - Sub-task acceptance criteria: from `Sub-Task Acceptance Criteria`.
 
+## Description Formatting Rules (Bullets)
+
+Before creating Feature, Story, or Sub-task:
+
+- If a description contains multiple checklist/point lines, convert it to bullet format.
+- Use Jira-friendly bullet prefixes (`* `) for each non-empty point line.
+- Keep acceptance criteria out of description; do not merge AC text into description.
+
 ## Hierarchy and Linking Rules (Mandatory)
 
 Issue hierarchy must always be:
 
 - Epic -> Feature: by `JiraCreateFeature` with `epicLink = epicKeyForFeatures`
-- Feature -> Story: by `JiraSetDependency` immediately after story creation
+- Feature -> Story: by `JiraSetDependency` immediately after story creation using:
+  - `linkType = "Relates"`
+  - `inwardIssueKey = storyKey`
+  - `outwardIssueKey = featureKey`
 - Story -> Sub-task: by `JiraCreateSubtask` with `parentKey = storyKey`
 
 Do not proceed to the next level if the current required link/parent relation is missing.
