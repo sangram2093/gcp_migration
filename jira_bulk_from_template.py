@@ -104,8 +104,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--jira-auth-mode",
         default=os.getenv("JIRA_AUTH_MODE", ""),
-        choices=["", "basic", "bearer"],
-        help="Jira auth mode: basic (email+token) or bearer (token only)",
+        choices=["", "basic", "bearer", "auto"],
+        help="Jira auth mode: bearer (default, same as built-in tools), basic, or auto",
+    )
+    parser.add_argument(
+        "--jira-api-version",
+        default=os.getenv("JIRA_API_VERSION", ""),
+        choices=["", "2", "3"],
+        help="Jira REST API version (default: 2, same as built-in tools)",
     )
     parser.add_argument("--state-file", default=".jira_bulk_state.json", help="Checkpoint file path")
     parser.add_argument("--dry-run", action="store_true", help="Print plan, do not create issues")
@@ -221,7 +227,7 @@ def _first_non_empty(values: List[str]) -> str:
     return ""
 
 
-def resolve_jira_credentials(args: argparse.Namespace, metadata: Dict[str, Any]) -> Tuple[str, str, str, str]:
+def resolve_jira_credentials(args: argparse.Namespace, metadata: Dict[str, Any]) -> Tuple[str, str, str, str, str]:
     jira_meta = metadata.get("jira", {}) if isinstance(metadata.get("jira"), dict) else {}
     jira_url = _first_non_empty(
         [
@@ -258,12 +264,22 @@ def resolve_jira_credentials(args: argparse.Namespace, metadata: Dict[str, Any])
             args.jira_auth_mode,
             os.getenv("JIRA_AUTH_MODE", ""),
             jira_meta.get("authMode", ""),
-            "basic",
+            "bearer",
         ]
     ).lower()
-    if jira_auth_mode not in ("basic", "bearer"):
-        jira_auth_mode = "basic"
-    return jira_url, jira_email, jira_token, jira_auth_mode
+    if jira_auth_mode not in ("basic", "bearer", "auto"):
+        jira_auth_mode = "bearer"
+    jira_api_version = _first_non_empty(
+        [
+            args.jira_api_version,
+            os.getenv("JIRA_API_VERSION", ""),
+            str(jira_meta.get("apiVersion", "")),
+            "2",
+        ]
+    )
+    if jira_api_version not in ("2", "3"):
+        jira_api_version = "2"
+    return jira_url, jira_email, jira_token, jira_auth_mode, jira_api_version
 
 
 class JiraClient:
@@ -273,6 +289,7 @@ class JiraClient:
         email: str,
         token: str,
         auth_mode: str,
+        api_version: str,
         max_retries: int,
         backoff: float,
     ) -> None:
@@ -287,17 +304,25 @@ class JiraClient:
             flags=re.IGNORECASE,
         )
         self.base_url = normalized_base.rstrip("/")
-        self.auth_mode = sanitize_text(auth_mode, multiline=False).lower() or "basic"
+        self.auth_mode = sanitize_text(auth_mode, multiline=False).lower() or "bearer"
+        if self.auth_mode not in ("basic", "bearer", "auto"):
+            self.auth_mode = "bearer"
+        self.api_version = sanitize_text(api_version, multiline=False) or "2"
+        if self.api_version not in ("2", "3"):
+            self.api_version = "2"
+        self.api_prefix = f"/rest/api/{self.api_version}"
         self.email = sanitize_text(email, multiline=False)
         self.token = sanitize_text(token, multiline=False)
         self.auth: Optional[HTTPBasicAuth] = None
         self.auth_header: Optional[str] = None
-        if self.auth_mode == "bearer":
-            self.auth_header = f"Bearer {self.token}"
-        else:
+        if self.auth_mode == "basic":
             self.auth = HTTPBasicAuth(self.email, self.token)
             basic_payload = f"{self.email}:{self.token}".encode("utf-8")
             self.auth_header = f"Basic {base64.b64encode(basic_payload).decode('ascii')}"
+        elif self.auth_mode == "bearer":
+            self.auth_header = f"Bearer {self.token}"
+        else:  # auto
+            self.auth_header = f"Bearer {self.token}"
         self.max_retries = max_retries
         self.backoff = backoff
         self.session = requests.Session()
@@ -327,6 +352,23 @@ class JiraClient:
                     last_error = f"{resp.status_code} {resp.text}"
                     time.sleep(self.backoff * attempt)
                     continue
+                if resp.status_code == 401 and self.auth_mode == "auto":
+                    # Auto-fallback: try basic if bearer failed and email is provided.
+                    if headers.get("Authorization", "").startswith("Bearer ") and self.email:
+                        basic_payload = f"{self.email}:{self.token}".encode("utf-8")
+                        headers["Authorization"] = f"Basic {base64.b64encode(basic_payload).decode('ascii')}"
+                        resp = self.session.request(
+                            method=method,
+                            url=url,
+                            auth=None,
+                            headers=headers,
+                            timeout=45,
+                            **kwargs,
+                        )
+                        if resp.status_code < 400:
+                            if resp.status_code == 204 or not resp.text:
+                                return {}
+                            return resp.json()
                 if resp.status_code >= 400:
                     raise RuntimeError(f"Jira API error {resp.status_code} {path}: {resp.text}")
                 if resp.status_code == 204 or not resp.text:
@@ -343,7 +385,7 @@ class JiraClient:
     def get_field_id(self, field_name: str) -> str:
         if field_name in self.field_cache:
             return self.field_cache[field_name]
-        fields = self._request("GET", "/rest/api/3/field")
+        fields = self._request("GET", f"{self.api_prefix}/field")
         for field in fields:
             if sanitize_text(field.get("name", ""), multiline=False).lower() == field_name.lower():
                 field_id = field["id"]
@@ -374,7 +416,7 @@ class JiraClient:
         if epic_key:
             epic_field = self.get_field_id("Epic Link")
             fields[epic_field] = sanitize_key(epic_key)
-        data = self._request("POST", "/rest/api/3/issue", json={"fields": fields})
+        data = self._request("POST", f"{self.api_prefix}/issue", json={"fields": fields})
         key = sanitize_text(data.get("key", ""), multiline=False)
         if not key:
             raise RuntimeError("Jira create issue response did not contain issue key")
@@ -396,7 +438,7 @@ class JiraClient:
             try:
                 self._request(
                     "PUT",
-                    f"/rest/api/3/issue/{sanitize_key(issue_key)}",
+                    f"{self.api_prefix}/issue/{sanitize_key(issue_key)}",
                     json={"fields": {field_id: value}},
                 )
                 return
@@ -406,7 +448,7 @@ class JiraClient:
 
     def _load_link_types(self) -> List[Dict[str, str]]:
         if self.link_type_cache is None:
-            data = self._request("GET", "/rest/api/3/issueLinkType")
+            data = self._request("GET", f"{self.api_prefix}/issueLinkType")
             self.link_type_cache = data.get("issueLinkTypes", []) or []
         return self.link_type_cache
 
@@ -432,7 +474,7 @@ class JiraClient:
             try:
                 self._request(
                     "POST",
-                    "/rest/api/3/issueLink",
+                    f"{self.api_prefix}/issueLink",
                     json={
                         "type": {"name": candidate},
                         "inwardIssue": {"key": sanitize_key(inward_key)},
@@ -517,12 +559,12 @@ def main() -> int:
         print("Dry-run mode enabled. No Jira items will be created.")
         return 0
 
-    jira_url, jira_email, jira_token, jira_auth_mode = resolve_jira_credentials(args, metadata)
+    jira_url, jira_email, jira_token, jira_auth_mode, jira_api_version = resolve_jira_credentials(args, metadata)
     if not jira_url or not jira_token:
         raise ValueError(
             "Missing Jira credentials. Provide Jira URL and token via CLI args, env vars, or metadata.jira."
         )
-    if jira_auth_mode == "basic" and not jira_email:
+    if jira_auth_mode in ("basic", "auto") and not jira_email:
         raise ValueError("Basic auth mode requires jira email/username.")
     if args.auth_debug:
         print(
@@ -531,6 +573,7 @@ def main() -> int:
                 {
                     "jiraUrl": jira_url,
                     "authMode": jira_auth_mode,
+                    "apiVersion": jira_api_version,
                     "emailProvided": bool(jira_email),
                     "tokenLength": len(jira_token),
                 },
@@ -543,6 +586,7 @@ def main() -> int:
         email=jira_email,
         token=jira_token,
         auth_mode=jira_auth_mode,
+        api_version=jira_api_version,
         max_retries=args.max_retries,
         backoff=args.retry_backoff_seconds,
     )

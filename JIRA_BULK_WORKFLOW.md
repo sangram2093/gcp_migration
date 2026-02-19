@@ -31,7 +31,8 @@ Optional:
 - `labels` (array)
 - `linkType` (default: `Relates`)
 - `jira` object (url/email/token/authMode)
-  - `authMode`: `basic` or `bearer`
+  - `authMode`: `bearer` (default, same as built-in), `basic`, or `auto`
+  - `apiVersion`: `2` (default, same as built-in) or `3`
 
 ## Run (dry run first)
 
@@ -113,5 +114,5 @@ python scripts/jira_bulk_from_template.py \
   - `Sub-Task Acceptance Criteria`
 - Credential precedence:
   - CLI args (`--jira-url`, `--jira-email`, `--jira-token`, `--jira-auth-mode`)
-  - env vars (`JIRA_URL`, `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_AUTH_EMAIL`, `JIRA_API_TOKEN`, `JIRA_TOKEN`, `JIRA_PAT`, `JIRA_AUTH_MODE`)
+  - env vars (`JIRA_URL`, `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_AUTH_EMAIL`, `JIRA_API_TOKEN`, `JIRA_TOKEN`, `JIRA_PAT`, `JIRA_AUTH_MODE`, `JIRA_API_VERSION`)
   - metadata `jira` object

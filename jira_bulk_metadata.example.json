@@ -3,7 +3,8 @@
     "url": "https://your-company.atlassian.net",
     "email": "your.user@company.com",
     "token": "your_api_token",
-    "authMode": "basic"
+    "authMode": "bearer",
+    "apiVersion": "2"
   },
   "projectKey": "NTS",
   "epicKeyForFeatures": "NTS-50000",
