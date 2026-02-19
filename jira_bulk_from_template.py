@@ -328,6 +328,7 @@ class JiraClient:
         self.session = requests.Session()
         self.field_cache: Dict[str, str] = {}
         self.link_type_cache: Optional[List[Dict[str, str]]] = None
+        self.issue_type_cache: Dict[str, Dict[str, Any]] = {}
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         url = f"{self.base_url}{path}"
@@ -393,6 +394,61 @@ class JiraClient:
                 return field_id
         raise RuntimeError(f"Jira field not found: {field_name}")
 
+    def _load_project_issue_types(self, project_key: str) -> List[Dict[str, Any]]:
+        cache_key = sanitize_key(project_key)
+        if cache_key in self.issue_type_cache:
+            return self.issue_type_cache[cache_key]["items"]
+        data = self._request(
+            "GET",
+            f"{self.api_prefix}/issue/createmeta?projectKeys={cache_key}&expand=projects.issuetypes",
+        )
+        projects = data.get("projects", []) if isinstance(data, dict) else []
+        if not projects:
+            raise RuntimeError(f"No Jira create metadata for project {cache_key}")
+        issue_types = projects[0].get("issuetypes", []) or []
+        self.issue_type_cache[cache_key] = {"items": issue_types}
+        return issue_types
+
+    @staticmethod
+    def _normalize_issue_type_name(name: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "", sanitize_text(name, multiline=False).lower())
+
+    def resolve_issue_type_id(self, project_key: str, preferred: str, is_subtask: bool = False) -> str:
+        issue_types = self._load_project_issue_types(project_key)
+        preferred_norm = self._normalize_issue_type_name(preferred)
+
+        aliases = [preferred_norm]
+        if preferred_norm in ("newfeature", "feature"):
+            aliases.extend(["newfeature", "feature"])
+        elif preferred_norm in ("story",):
+            aliases.extend(["story", "userstory"])
+        elif preferred_norm in ("subtask", "sub-task", "sub task"):
+            aliases.extend(["subtask", "sub-task", "subtaskissue"])
+
+        alias_set = set(aliases)
+
+        # exact/alias match first (with subtask flag awareness)
+        for it in issue_types:
+            name_norm = self._normalize_issue_type_name(it.get("name", ""))
+            if name_norm in alias_set and bool(it.get("subtask", False)) == is_subtask:
+                return str(it["id"])
+
+        # relaxed match ignoring subtask if no exact found
+        for it in issue_types:
+            name_norm = self._normalize_issue_type_name(it.get("name", ""))
+            if name_norm in alias_set:
+                return str(it["id"])
+
+        # fallback by subtask flag only
+        for it in issue_types:
+            if bool(it.get("subtask", False)) == is_subtask:
+                return str(it["id"])
+
+        available = [str(it.get("name", "")) for it in issue_types]
+        raise RuntimeError(
+            f"Could not resolve issue type '{preferred}' for project {project_key}. Available: {available}"
+        )
+
     def create_issue(
         self,
         project_key: str,
@@ -403,9 +459,16 @@ class JiraClient:
         parent_key: str = "",
         labels: Optional[List[str]] = None,
     ) -> str:
+        normalized_project_key = sanitize_key(project_key)
+        is_subtask = bool(parent_key)
+        issue_type_id = self.resolve_issue_type_id(
+            normalized_project_key,
+            issue_type,
+            is_subtask=is_subtask,
+        )
         fields: Dict[str, Any] = {
-            "project": {"key": sanitize_key(project_key)},
-            "issuetype": {"name": issue_type},
+            "project": {"key": normalized_project_key},
+            "issuetype": {"id": issue_type_id},
             "summary": sanitize_text(summary, multiline=False),
             "description": sanitize_text(description, multiline=True),
         }

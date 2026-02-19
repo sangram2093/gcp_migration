@@ -112,6 +112,9 @@ python scripts/jira_bulk_from_template.py \
   - `Sub-Task`
   - `Sub-Task Description`
   - `Sub-Task Acceptance Criteria`
+- Issue type handling:
+  - The script resolves issue types per project via Jira `createmeta` and sends issue type **id** (not name).
+  - This avoids failures when your Jira uses different names than `New Feature`/`Story`/`Sub-task`.
 - Credential precedence:
   - CLI args (`--jira-url`, `--jira-email`, `--jira-token`, `--jira-auth-mode`)
   - env vars (`JIRA_URL`, `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_AUTH_EMAIL`, `JIRA_API_TOKEN`, `JIRA_TOKEN`, `JIRA_PAT`, `JIRA_AUTH_MODE`, `JIRA_API_VERSION`)
