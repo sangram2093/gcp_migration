@@ -1,0 +1,26 @@
+{
+  "projectKey": "NTS",
+  "epicKeyForFeatures": "NTS-50000",
+  "surveillanceName": "ABC_SURVEILLANCE",
+  "linkType": "Relates",
+  "labels": [
+    "dbcastle",
+    "migration"
+  ],
+  "feeds": [
+    {
+      "name": "Feed-1"
+    },
+    {
+      "name": "Feed-2"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "Scenario-1"
+    },
+    {
+      "name": "Scenario-2"
+    }
+  ]
+}
