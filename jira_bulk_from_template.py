@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import time
+import base64
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -100,8 +101,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jira-url", default=os.getenv("JIRA_URL", ""), help="Jira base URL (e.g. https://company.atlassian.net)")
     parser.add_argument("--jira-email", default=os.getenv("JIRA_EMAIL", ""), help="Jira user email")
     parser.add_argument("--jira-token", default=os.getenv("JIRA_API_TOKEN", ""), help="Jira API token")
+    parser.add_argument(
+        "--jira-auth-mode",
+        default=os.getenv("JIRA_AUTH_MODE", ""),
+        choices=["", "basic", "bearer"],
+        help="Jira auth mode: basic (email+token) or bearer (token only)",
+    )
     parser.add_argument("--state-file", default=".jira_bulk_state.json", help="Checkpoint file path")
     parser.add_argument("--dry-run", action="store_true", help="Print plan, do not create issues")
+    parser.add_argument("--auth-debug", action="store_true", help="Print safe auth diagnostics (no token value)")
     parser.add_argument("--max-retries", type=int, default=5, help="API retry count")
     parser.add_argument("--retry-backoff-seconds", type=float, default=1.5, help="Retry backoff base")
     return parser.parse_args()
@@ -206,12 +214,65 @@ def apply_placeholders(text: str, surveillance_name: str, scenario_name: str = "
     return sanitize_text(out, multiline=True)
 
 
+def _first_non_empty(values: List[str]) -> str:
+    for value in values:
+        if sanitize_text(value, multiline=False):
+            return sanitize_text(value, multiline=False)
+    return ""
+
+
+def resolve_jira_credentials(args: argparse.Namespace, metadata: Dict[str, Any]) -> Tuple[str, str, str, str]:
+    jira_meta = metadata.get("jira", {}) if isinstance(metadata.get("jira"), dict) else {}
+    jira_url = _first_non_empty(
+        [
+            args.jira_url,
+            os.getenv("JIRA_URL", ""),
+            os.getenv("JIRA_BASE_URL", ""),
+            jira_meta.get("url", ""),
+            jira_meta.get("baseUrl", ""),
+            jira_meta.get("domain", ""),
+        ]
+    )
+    jira_email = _first_non_empty(
+        [
+            args.jira_email,
+            os.getenv("JIRA_EMAIL", ""),
+            os.getenv("JIRA_AUTH_EMAIL", ""),
+            jira_meta.get("email", ""),
+            jira_meta.get("authEmail", ""),
+        ]
+    )
+    jira_token = _first_non_empty(
+        [
+            args.jira_token,
+            os.getenv("JIRA_API_TOKEN", ""),
+            os.getenv("JIRA_TOKEN", ""),
+            os.getenv("JIRA_PAT", ""),
+            jira_meta.get("token", ""),
+            jira_meta.get("apiToken", ""),
+            jira_meta.get("pat", ""),
+        ]
+    )
+    jira_auth_mode = _first_non_empty(
+        [
+            args.jira_auth_mode,
+            os.getenv("JIRA_AUTH_MODE", ""),
+            jira_meta.get("authMode", ""),
+            "basic",
+        ]
+    ).lower()
+    if jira_auth_mode not in ("basic", "bearer"):
+        jira_auth_mode = "basic"
+    return jira_url, jira_email, jira_token, jira_auth_mode
+
+
 class JiraClient:
     def __init__(
         self,
         base_url: str,
         email: str,
         token: str,
+        auth_mode: str,
         max_retries: int,
         backoff: float,
     ) -> None:
@@ -226,7 +287,17 @@ class JiraClient:
             flags=re.IGNORECASE,
         )
         self.base_url = normalized_base.rstrip("/")
-        self.auth = HTTPBasicAuth(email, token)
+        self.auth_mode = sanitize_text(auth_mode, multiline=False).lower() or "basic"
+        self.email = sanitize_text(email, multiline=False)
+        self.token = sanitize_text(token, multiline=False)
+        self.auth: Optional[HTTPBasicAuth] = None
+        self.auth_header: Optional[str] = None
+        if self.auth_mode == "bearer":
+            self.auth_header = f"Bearer {self.token}"
+        else:
+            self.auth = HTTPBasicAuth(self.email, self.token)
+            basic_payload = f"{self.email}:{self.token}".encode("utf-8")
+            self.auth_header = f"Basic {base64.b64encode(basic_payload).decode('ascii')}"
         self.max_retries = max_retries
         self.backoff = backoff
         self.session = requests.Session()
@@ -237,6 +308,8 @@ class JiraClient:
         url = f"{self.base_url}{path}"
         headers = kwargs.pop("headers", {})
         headers.setdefault("Accept", "application/json")
+        if self.auth_header:
+            headers.setdefault("Authorization", self.auth_header)
         if "json" in kwargs:
             headers.setdefault("Content-Type", "application/json")
         last_error: Optional[str] = None
@@ -444,13 +517,32 @@ def main() -> int:
         print("Dry-run mode enabled. No Jira items will be created.")
         return 0
 
-    if not args.jira_url or not args.jira_email or not args.jira_token:
-        raise ValueError("Missing Jira credentials. Provide --jira-url --jira-email --jira-token or env vars.")
+    jira_url, jira_email, jira_token, jira_auth_mode = resolve_jira_credentials(args, metadata)
+    if not jira_url or not jira_token:
+        raise ValueError(
+            "Missing Jira credentials. Provide Jira URL and token via CLI args, env vars, or metadata.jira."
+        )
+    if jira_auth_mode == "basic" and not jira_email:
+        raise ValueError("Basic auth mode requires jira email/username.")
+    if args.auth_debug:
+        print(
+            "Auth config:",
+            json.dumps(
+                {
+                    "jiraUrl": jira_url,
+                    "authMode": jira_auth_mode,
+                    "emailProvided": bool(jira_email),
+                    "tokenLength": len(jira_token),
+                },
+                indent=2,
+            ),
+        )
 
     client = JiraClient(
-        base_url=args.jira_url,
-        email=args.jira_email,
-        token=args.jira_token,
+        base_url=jira_url,
+        email=jira_email,
+        token=jira_token,
+        auth_mode=jira_auth_mode,
         max_retries=args.max_retries,
         backoff=args.retry_backoff_seconds,
     )

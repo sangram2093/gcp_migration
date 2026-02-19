@@ -1,4 +1,10 @@
 {
+  "jira": {
+    "url": "https://your-company.atlassian.net",
+    "email": "your.user@company.com",
+    "token": "your_api_token",
+    "authMode": "basic"
+  },
   "projectKey": "NTS",
   "epicKeyForFeatures": "NTS-50000",
   "surveillanceName": "ABC_SURVEILLANCE",

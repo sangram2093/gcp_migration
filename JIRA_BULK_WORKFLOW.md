@@ -30,6 +30,8 @@ Optional:
 
 - `labels` (array)
 - `linkType` (default: `Relates`)
+- `jira` object (url/email/token/authMode)
+  - `authMode`: `basic` or `bearer`
 
 ## Run (dry run first)
 
@@ -43,6 +45,24 @@ python scripts/jira_bulk_from_template.py \
   --state-file .jira_bulk_state.json \
   --dry-run
 ```
+
+Auth debug (safe):
+
+```bash
+python scripts/jira_bulk_from_template.py \
+  --template jira_board_tasks.xlsx \
+  --metadata scripts/jira_bulk_metadata.example.json \
+  --auth-debug \
+  --dry-run
+```
+
+This prints only:
+- resolved Jira URL
+- auth mode
+- whether email is present
+- token length
+
+Token value is never printed.
 
 ## Run (actual create)
 
@@ -91,3 +111,7 @@ python scripts/jira_bulk_from_template.py \
   - `Sub-Task`
   - `Sub-Task Description`
   - `Sub-Task Acceptance Criteria`
+- Credential precedence:
+  - CLI args (`--jira-url`, `--jira-email`, `--jira-token`, `--jira-auth-mode`)
+  - env vars (`JIRA_URL`, `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_AUTH_EMAIL`, `JIRA_API_TOKEN`, `JIRA_TOKEN`, `JIRA_PAT`, `JIRA_AUTH_MODE`)
+  - metadata `jira` object
