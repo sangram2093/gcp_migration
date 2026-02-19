@@ -409,6 +409,24 @@ class JiraClient:
         self.issue_type_cache[cache_key] = {"items": issue_types}
         return issue_types
 
+    def get_subtask_type_id(self, project_key: str) -> str:
+        cache_key = sanitize_key(project_key)
+        data = self._request(
+            "GET",
+            f"{self.api_prefix}/issue/createmeta?projectKeys={cache_key}&expand=projects.issuetypes.fields",
+        )
+        projects = data.get("projects", []) if isinstance(data, dict) else []
+        if not projects:
+            raise RuntimeError(f"No Jira create metadata for project {cache_key}")
+        issue_types = projects[0].get("issuetypes", []) or []
+        for it in issue_types:
+            if bool(it.get("subtask", False)):
+                return str(it["id"])
+        available = [str(it.get("name", "")) for it in issue_types]
+        raise RuntimeError(
+            f"No sub-task issue type found for project {cache_key}. Available issue types: {available}"
+        )
+
     @staticmethod
     def _normalize_issue_type_name(name: str) -> str:
         return re.sub(r"[^a-z0-9]+", "", sanitize_text(name, multiline=False).lower())
@@ -460,12 +478,16 @@ class JiraClient:
         labels: Optional[List[str]] = None,
     ) -> str:
         normalized_project_key = sanitize_key(project_key)
-        is_subtask = bool(parent_key)
-        issue_type_id = self.resolve_issue_type_id(
-            normalized_project_key,
-            issue_type,
-            is_subtask=is_subtask,
-        )
+        issue_type_id = ""
+        if parent_key:
+            # Match built-in Jira tool behavior: always select subtask type by `subtask=true`.
+            issue_type_id = self.get_subtask_type_id(normalized_project_key)
+        else:
+            issue_type_id = self.resolve_issue_type_id(
+                normalized_project_key,
+                issue_type,
+                is_subtask=False,
+            )
         fields: Dict[str, Any] = {
             "project": {"key": normalized_project_key},
             "issuetype": {"id": issue_type_id},
@@ -488,9 +510,9 @@ class JiraClient:
     def set_acceptance_criteria(self, issue_key: str, criteria: str) -> None:
         field_id = self.get_field_id("Acceptance criteria")
         variants = []
-        base = sanitize_text(criteria, multiline=True)
+        base = ensure_bullets(sanitize_text(criteria, multiline=True))
         variants.append(base)
-        variants.append(sanitize_text(criteria, multiline=False))
+        variants.append(ensure_bullets(sanitize_text(criteria, multiline=False)))
         variants.append(base.replace('"', "").replace("'", ""))
         seen = set()
         for value in variants:
