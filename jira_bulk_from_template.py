@@ -215,7 +215,17 @@ class JiraClient:
         max_retries: int,
         backoff: float,
     ) -> None:
-        self.base_url = base_url.rstrip("/")
+        normalized_base = sanitize_text(base_url, multiline=False)
+        if not re.match(r"^https?://", normalized_base, flags=re.IGNORECASE):
+            normalized_base = f"https://{normalized_base}"
+        # Allow users to pass either site root or rest-api root
+        normalized_base = re.sub(
+            r"/rest/api/[23]/?$",
+            "",
+            normalized_base,
+            flags=re.IGNORECASE,
+        )
+        self.base_url = normalized_base.rstrip("/")
         self.auth = HTTPBasicAuth(email, token)
         self.max_retries = max_retries
         self.backoff = backoff
