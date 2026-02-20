@@ -1,0 +1,25 @@
+name: FORGE Risk Intelligence Agent (stdio)
+version: 1.0.0
+schema: v1
+
+models:
+  - name: gpt-5
+    provider: openai
+    model: gpt-5
+    apiKey: YOUR_OPENAI_API_KEY_HERE
+
+mcpServers:
+  - name: FORGE Risk MCP (stdio)
+    type: stdio
+    command: python
+    args:
+      - C:/Users/sangr/Downloads/sangram/developments/dtcc-global-feb-26/forge_mcp_server.py
+      - --transport
+      - stdio
+
+rules:
+  - name: forge-chart-output
+    rule: |
+      For risk schedule questions, call FORGE MCP tools first.
+      When visualization is requested or helpful, use `forge_visual_report`
+      and include returned `d3` code blocks in the final response.

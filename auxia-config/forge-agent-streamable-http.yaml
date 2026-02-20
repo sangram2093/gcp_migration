@@ -1,0 +1,21 @@
+name: FORGE Risk Intelligence Agent (streamable-http)
+version: 1.0.0
+schema: v1
+
+models:
+  - name: gpt-5
+    provider: openai
+    model: gpt-5
+    apiKey: YOUR_OPENAI_API_KEY_HERE
+
+mcpServers:
+  - name: FORGE Risk MCP (HTTP)
+    type: streamable-http
+    url: http://127.0.0.1:8765/mcp
+
+rules:
+  - name: forge-chart-output
+    rule: |
+      For risk schedule questions, call FORGE MCP tools first.
+      When visualization is requested or helpful, use `forge_visual_report`
+      and include returned `d3` code blocks in the final response.
