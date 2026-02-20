@@ -1,0 +1,15 @@
+Show me the FORGE sample risk dataset with total score, residual floor, and total CTA.
+Optimize a remediation plan using cp-sat with deadline 20, team capacity 4, and target remaining risk ratio 0.5.
+Run the same optimization with pulp and compare cost, selected risks, and achieved score vs cp-sat.
+Generate a full visual report for cp-sat (table + budget timeline graph + remediation gantt graph).
+Create a visual report with tighter constraints: deadline 15, team capacity 3, target remaining ratio 0.45.
+Give me only the budget timeline visualization for the optimized cp-sat plan.
+Give me only the remediation gantt visualization for the optimized cp-sat plan.
+Reuse the last FORGE run and show the visual report again.
+What is the minimum-cost plan to keep final risk score at or below 170?
+Run a what-if analysis for team capacity 3, 4, and 5; summarize cost and achieved score for each.
+Run a what-if analysis for deadlines 14, 20, and 25 with target remaining ratio 0.5.
+Benchmark cp-sat vs pulp for 10 iterations and show min/max/avg runtime.
+Try an intentionally strict scenario (deadline 8, capacity 2, target ratio 0.35) and explain if it is infeasible.
+Use this custom risk list and optimize: [{"ID":101,"Score":42,"Res_Score":12,"CTA":9000,"LeadTime":4,"Capacity":2,"Predecessors":[]},{"ID":102,"Score":28,"Res_Score":8,"CTA":5000,"LeadTime":3,"Capacity":2,"Predecessors":[101]},{"ID":103,"Score":35,"Res_Score":10,"CTA":7000,"LeadTime":5,"Capacity":3,"Predecessors":[]}]
+Provide an executive summary of the optimized plan: cost, risk reduction %, key dependencies, and day-wise budget asks.
