@@ -1012,9 +1012,18 @@ def build_feature_rows(
                 "target_date_display": format_display_date(feature_target_dt) if feature_target_dt else format_display_date(item.target_date),
                 "target_source": target_source,
                 "days_to_epic": days_to_epic,
+                "days_since_activity": item.days_since_activity,
+                "days_to_target": item.days_to_target,
             },
         )
 
+    rows.sort(
+        key=lambda r: (
+            {"red": 0, "amber": 1, "green": 2}.get(str(r.get("health", "")).lower(), 3),
+            -(int(r.get("days_since_activity") or 0)),
+            str(r.get("key", "")),
+        ),
+    )
     return rows
 
 
@@ -1022,75 +1031,82 @@ def build_feature_days_svg(feature_rows: List[Dict[str, Any]]) -> str:
     if not feature_rows:
         return '<div class="sub">No feature data available.</div>'
 
-    values = [int(row["days_to_epic"]) for row in feature_rows if row["days_to_epic"] is not None]
-    if not values:
-        values = [0]
-    max_value = max(max(values), 1)
-    min_value = min(min(values), 0)
-    span = max(max_value - min_value, 1)
+    activity_values = [int(row["days_since_activity"]) for row in feature_rows if row["days_since_activity"] is not None]
+    max_activity = max(activity_values) if activity_values else 0
+    x_max = max(20, max_activity + 2)
 
-    chart_height = 220
-    top_pad = 24
-    bottom_pad = 48
-    left_pad = 42
-    right_pad = 16
-    inner_height = chart_height - top_pad - bottom_pad
+    row_h = 34
+    top_pad = 34
+    bottom_pad = 38
+    chart_h = top_pad + bottom_pad + row_h * len(feature_rows)
+    left_label_w = 318
+    bar_w = 430
+    right_meta_w = 330
+    width = left_label_w + bar_w + right_meta_w + 22
 
-    slot = 112
-    width = max(620, left_pad + right_pad + slot * len(feature_rows))
+    axis_y = top_pad - 8
+    track_x = left_label_w
+    track_y0 = top_pad - 2
 
-    def y_for(value: int) -> float:
-        return top_pad + ((max_value - value) / span) * inner_height
+    def x_for(days: float) -> float:
+        return track_x + (max(days, 0.0) / x_max) * bar_w
 
-    zero_y = y_for(0)
-    bars: List[str] = []
-    labels: List[str] = []
-    for idx, row in enumerate(feature_rows):
-        x = left_pad + idx * slot + 20
-        bar_w = 46
-        value = int(row["days_to_epic"] or 0)
-        y = y_for(value)
-        if value >= 0:
-            rect_y = y
-            rect_h = max(zero_y - y, 2)
-        else:
-            rect_y = zero_y
-            rect_h = max(y - zero_y, 2)
+    green_end = x_for(6.0)
+    amber_end = x_for(14.0)
+    red_end = x_for(float(x_max))
 
-        color = status_color(str(row["health"]))
-        title = (
-            f"{row['key']} - {sanitize_text(row['summary'], multiline=False)} | "
-            f"Target: {row['target_date_display']} | Status: {str(row['health']).upper()} | "
-            f"Days to Epic: {value}"
+    ticks: List[str] = []
+    tick_step = 5 if x_max > 25 else 2
+    for value in range(0, x_max + 1, tick_step):
+        x = x_for(float(value))
+        ticks.append(
+            f'<line x1="{x:.1f}" y1="{top_pad - 2}" x2="{x:.1f}" y2="{chart_h - bottom_pad + 6}" stroke="#e2e8f0"></line>'
+            f'<text x="{x:.1f}" y="{axis_y - 8}" text-anchor="middle" font-size="10" fill="#64748b">{value}d</text>'
         )
-        bars.append(
-            f'<g><title>{html_escape(title)}</title>'
-            f'<rect x="{x}" y="{rect_y:.1f}" width="{bar_w}" height="{rect_h:.1f}" rx="8" fill="{color}" opacity="0.88"></rect>'
-            f'<text x="{x + bar_w / 2:.1f}" y="{rect_y - 6:.1f}" text-anchor="middle" font-size="11" fill="#334155">{value}</text>'
+
+    rows_svg: List[str] = []
+    for idx, row in enumerate(feature_rows):
+        y = top_pad + idx * row_h
+        mid_y = y + (row_h * 0.5)
+        age = max(int(row["days_since_activity"] or 0), 0)
+        bar_end = x_for(float(min(age, x_max)))
+        color = status_color(str(row["health"]))
+
+        key = html_escape(str(row["key"]))
+        summary = html_escape(sanitize_text(row["summary"], multiline=False)[:44] or "-")
+        status = html_escape(str(row["health"]).upper())
+        jira_status = html_escape(str(row["jira_status"]))
+        target = html_escape(str(row["target_date_display"]))
+        days_to_epic = row["days_to_epic"]
+        days_to_epic_text = "-" if days_to_epic is None else f"{int(days_to_epic)}d"
+
+        title = (
+            f"{row['key']} | {sanitize_text(row['summary'], multiline=False)} | "
+            f"Health: {str(row['health']).upper()} | Jira: {row['jira_status']} | "
+            f"Target: {row['target_date_display']} | Inactive: {age} day(s) | Days to Epic: {days_to_epic_text}"
+        )
+        rows_svg.append(
+            f"<g><title>{html_escape(title)}</title>"
+            f'<rect x="{track_x}" y="{y + 6:.1f}" width="{bar_w}" height="16" rx="8" fill="#f8fafc" stroke="#e2e8f0"></rect>'
+            f'<rect x="{track_x}" y="{y + 6:.1f}" width="{max(green_end - track_x, 0):.1f}" height="16" rx="8" fill="#dcfce7" opacity="0.6"></rect>'
+            f'<rect x="{green_end:.1f}" y="{y + 6:.1f}" width="{max(amber_end - green_end, 0):.1f}" height="16" fill="#fef3c7" opacity="0.7"></rect>'
+            f'<rect x="{amber_end:.1f}" y="{y + 6:.1f}" width="{max(red_end - amber_end, 0):.1f}" height="16" rx="8" fill="#fee2e2" opacity="0.7"></rect>'
+            f'<rect x="{track_x}" y="{y + 6:.1f}" width="{max(bar_end - track_x, 3):.1f}" height="16" rx="8" fill="{color}" opacity="0.95"></rect>'
+            f'<text x="{track_x - 8}" y="{mid_y + 1:.1f}" text-anchor="end" font-size="11" fill="#0f172a" font-weight="600">{key}</text>'
+            f'<text x="{track_x - 8}" y="{mid_y + 13:.1f}" text-anchor="end" font-size="10" fill="#64748b">{summary}</text>'
+            f'<text x="{bar_end + 8:.1f}" y="{mid_y + 3:.1f}" font-size="11" fill="#334155">{age}d inactive</text>'
+            f'<text x="{track_x + bar_w + 10}" y="{mid_y - 5:.1f}" font-size="10.5" fill="#334155">Status: {status} / {jira_status}</text>'
+            f'<text x="{track_x + bar_w + 10}" y="{mid_y + 8:.1f}" font-size="10.5" fill="#334155">Target: {target} | To Epic: {days_to_epic_text}</text>'
             "</g>"
         )
-        labels.append(
-            f'<text x="{x + bar_w / 2:.1f}" y="{chart_height - 16}" text-anchor="middle" font-size="11" fill="#475569">{html_escape(str(row["key"]))}</text>'
-        )
-
-    axis_labels = [
-        (max_value, y_for(max_value)),
-        (0, zero_y),
-        (min_value, y_for(min_value)),
-    ]
-    y_ticks = "".join(
-        f'<text x="8" y="{pos + 4:.1f}" font-size="10" fill="#64748b">{val}</text>'
-        for val, pos in axis_labels
-    )
 
     return (
-        f'<svg width="100%" height="{chart_height}" viewBox="0 0 {width} {chart_height}" '
-        'role="img" aria-label="Feature days to epic target">'
-        f'<rect x="{left_pad}" y="{top_pad}" width="{width - left_pad - right_pad}" height="{inner_height}" fill="#f8fafc" stroke="#e2e8f0"></rect>'
-        f'<line x1="{left_pad}" y1="{zero_y:.1f}" x2="{width - right_pad}" y2="{zero_y:.1f}" stroke="#94a3b8" stroke-dasharray="3 3"></line>'
-        f"{y_ticks}"
-        f"{''.join(bars)}"
-        f"{''.join(labels)}"
+        f'<svg width="100%" height="{chart_h}" viewBox="0 0 {width} {chart_h}" '
+        'role="img" aria-label="Feature health waterfall chart">'
+        f'<text x="{track_x}" y="16" font-size="12" fill="#334155" font-weight="600">Waterfall axis: Days since last activity (staleness)</text>'
+        f'<text x="{track_x}" y="{axis_y}" font-size="10" fill="#64748b">0-6 Green zone | 7-14 Amber zone | 15+ Red zone</text>'
+        f"{''.join(ticks)}"
+        f"{''.join(rows_svg)}"
         "</svg>"
     )
 
@@ -1364,8 +1380,8 @@ def render_html_report(
         </div>
       </div>
       <div class="card">
-        <h3 style="margin:0 0 4px 0;">Feature View (Epic target reference)</h3>
-        <div class="sub">Feature target date is assumed as Epic target minus 15 days.</div>
+        <h3 style="margin:0 0 4px 0;">Feature Health Waterfall</h3>
+        <div class="sub">Each row shows feature key/name, inactivity aging, status, target end date, and days remaining to epic target.</div>
         {feature_graph_svg}
         <div class="feature-meta">
           {''.join(feature_rows_html) if feature_rows_html else '<div class="sub">No feature data available.</div>'}
