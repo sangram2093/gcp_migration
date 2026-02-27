@@ -11,6 +11,7 @@ Scope:
 Report outputs:
 - Detailed markdown report with per-issue health
 - Mermaid diagrams (status distribution + hierarchy graph)
+- Rich HTML report with interactive visuals
 - JSON payload for downstream processing
 
 Example:
@@ -26,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import math
 import json
 import os
 import re
@@ -33,6 +35,7 @@ import sys
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from html import escape as html_escape
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -808,6 +811,16 @@ def status_emoji(status: str) -> str:
     return "?"
 
 
+def status_color(status: str) -> str:
+    if status == "green":
+        return "#16a34a"
+    if status == "amber":
+        return "#d97706"
+    if status == "red":
+        return "#dc2626"
+    return "#64748b"
+
+
 def make_mermaid_id(issue_key: str) -> str:
     return f"K_{re.sub(r'[^A-Za-z0-9_]', '_', issue_key)}"
 
@@ -816,6 +829,84 @@ def escape_mermaid_label(value: str) -> str:
     text = sanitize_text(value, multiline=False)
     text = text.replace('"', "'")
     return text[:90]
+
+
+def build_node_order(root_key: str, edges: Dict[str, List[str]]) -> List[Tuple[str, int]]:
+    ordered: List[Tuple[str, int]] = []
+    seen: Set[str] = set()
+    stack: List[Tuple[str, int]] = [(root_key, 0)]
+
+    while stack:
+        node, depth = stack.pop()
+        if node in seen:
+            continue
+        seen.add(node)
+        ordered.append((node, depth))
+        children = edges.get(node, [])
+        for child in reversed(children):
+            stack.append((child, depth + 1))
+
+    return ordered
+
+
+def build_donut_svg(counts: Dict[str, int]) -> str:
+    values = [
+        ("green", counts.get("green", 0)),
+        ("amber", counts.get("amber", 0)),
+        ("red", counts.get("red", 0)),
+    ]
+    total = sum(v for _, v in values)
+    if total <= 0:
+        total = 1
+    radius = 68
+    circumference = 2 * math.pi * radius
+    start = 0.0
+    parts: List[str] = []
+    for status, value in values:
+        if value <= 0:
+            continue
+        length = (value / total) * circumference
+        parts.append(
+            f'<circle cx="95" cy="95" r="{radius}" fill="none" '
+            f'stroke="{status_color(status)}" stroke-width="24" '
+            f'stroke-dasharray="{length:.3f} {circumference:.3f}" '
+            f'stroke-dashoffset="{-start:.3f}" stroke-linecap="butt" '
+            f'transform="rotate(-90 95 95)"></circle>'
+        )
+        start += length
+
+    return (
+        '<svg width="190" height="190" viewBox="0 0 190 190" role="img" aria-label="Health donut">'
+        '<circle cx="95" cy="95" r="68" fill="none" stroke="#e2e8f0" stroke-width="24"></circle>'
+        + "".join(parts)
+        + f'<text x="95" y="92" text-anchor="middle" font-size="30" fill="#0f172a" font-weight="700">{sum(counts.values())}</text>'
+        + '<text x="95" y="115" text-anchor="middle" font-size="12" fill="#64748b">Issues</text>'
+        + "</svg>"
+    )
+
+
+def compute_type_health_stats(health_map: Dict[str, IssueHealth]) -> List[Dict[str, Any]]:
+    stats: Dict[str, Dict[str, int]] = {}
+    for item in health_map.values():
+        key = item.issue_type or "Unknown"
+        if key not in stats:
+            stats[key] = {"green": 0, "amber": 0, "red": 0, "total": 0}
+        if item.health in ("green", "amber", "red"):
+            stats[key][item.health] += 1
+        stats[key]["total"] += 1
+
+    rows = [
+        {
+            "type": issue_type,
+            "green": values["green"],
+            "amber": values["amber"],
+            "red": values["red"],
+            "total": values["total"],
+        }
+        for issue_type, values in stats.items()
+    ]
+    rows.sort(key=lambda x: (-x["total"], x["type"]))
+    return rows
 
 
 def build_mermaid_pie(counts: Dict[str, int]) -> str:
@@ -956,6 +1047,143 @@ def render_markdown_report(
     return "\n".join(md)
 
 
+def render_html_report(
+    scope: str,
+    root_key: str,
+    root_type: str,
+    overall_status: str,
+    counts: Dict[str, int],
+    edges: Dict[str, List[str]],
+    health_map: Dict[str, IssueHealth],
+) -> str:
+    generated_at = datetime.now(timezone.utc).isoformat()
+    ordered_nodes = build_node_order(root_key, edges)
+    by_type = compute_type_health_stats(health_map)
+
+    donut_svg = build_donut_svg(counts)
+
+    type_bars: List[str] = []
+    for row in by_type:
+        total = max(int(row["total"]), 1)
+        g = (row["green"] / total) * 100
+        a = (row["amber"] / total) * 100
+        r = (row["red"] / total) * 100
+        type_bars.append(
+            "<div class='type-row'>"
+            f"<div class='type-name'>{html_escape(str(row['type']))}</div>"
+            "<div class='type-bar'>"
+            f"<span class='seg green' style='width:{g:.2f}%'></span>"
+            f"<span class='seg amber' style='width:{a:.2f}%'></span>"
+            f"<span class='seg red' style='width:{r:.2f}%'></span>"
+            "</div>"
+            f"<div class='type-meta'>G:{row['green']} A:{row['amber']} R:{row['red']} / {row['total']}</div>"
+            "</div>"
+        )
+
+    table_rows: List[str] = []
+    for key, depth in ordered_nodes:
+        item = health_map.get(key)
+        if not item:
+            continue
+        indent = depth * 20
+        status_chip = (
+            f"<span class='chip {item.health}'>{status_emoji(item.health)} {item.health.upper()}</span>"
+        )
+        table_rows.append(
+            "<tr>"
+            f"<td><div class='key-cell' style='padding-left:{indent}px'><strong>{html_escape(item.key)}</strong><div class='summary'>{html_escape(item.summary or '')}</div></div></td>"
+            f"<td>{html_escape(item.issue_type or '-')}</td>"
+            f"<td>{html_escape(item.jira_status or '-')}</td>"
+            f"<td>{status_chip}</td>"
+            f"<td>{html_escape(item.target_date or '-')}</td>"
+            f"<td>{html_escape(item.last_activity_at or '-')}</td>"
+            f"<td>{item.days_to_target if item.days_to_target is not None else '-'}</td>"
+            f"<td>{item.days_since_activity if item.days_since_activity is not None else '-'}</td>"
+            f"<td>{item.comment_count}</td>"
+            f"<td>{item.worklog_count}</td>"
+            f"<td>{html_escape(item.reason or '-')}</td>"
+            "</tr>"
+        )
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jira Health Report - {html_escape(root_key)}</title>
+  <style>
+    :root {{
+      --green:#16a34a; --amber:#d97706; --red:#dc2626;
+      --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    }}
+    body {{ margin:0; font-family:Segoe UI, system-ui, sans-serif; background:var(--bg); color:var(--text); }}
+    .wrap {{ max-width:1400px; margin:0 auto; padding:24px; }}
+    .header {{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; }}
+    .sub {{ color:var(--muted); font-size:13px; }}
+    .status {{ font-size:22px; font-weight:700; margin-top:8px; color:{status_color(overall_status)}; }}
+    .grid {{ display:grid; grid-template-columns: 280px 1fr; gap:16px; margin-top:16px; }}
+    .card {{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; }}
+    .legend {{ display:flex; gap:12px; font-size:12px; color:var(--muted); margin-top:6px; }}
+    .dot {{ width:10px; height:10px; display:inline-block; border-radius:99px; margin-right:5px; }}
+    .type-row {{ margin-bottom:12px; }}
+    .type-name {{ font-size:13px; margin-bottom:4px; }}
+    .type-bar {{ display:flex; width:100%; height:12px; border-radius:10px; overflow:hidden; background:#e5e7eb; }}
+    .seg.green {{ background:var(--green); }} .seg.amber {{ background:var(--amber); }} .seg.red {{ background:var(--red); }}
+    .type-meta {{ margin-top:4px; font-size:12px; color:var(--muted); }}
+    .table-wrap {{ margin-top:16px; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:auto; }}
+    table {{ border-collapse:collapse; width:100%; min-width:1200px; }}
+    th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:13px; }}
+    th {{ background:#f1f5f9; position:sticky; top:0; z-index:1; }}
+    .key-cell .summary {{ margin-top:3px; font-size:12px; color:var(--muted); }}
+    .chip {{ padding:4px 8px; border-radius:999px; font-size:11px; font-weight:700; }}
+    .chip.green {{ background:#dcfce7; color:#14532d; }}
+    .chip.amber {{ background:#fef3c7; color:#78350f; }}
+    .chip.red {{ background:#fee2e2; color:#7f1d1d; }}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1 style="margin:0;">Jira Health Report - {html_escape(root_key)}</h1>
+      <div class="sub">Scope: {html_escape(scope.upper())} | Root Type: {html_escape(root_type or "Unknown")} | Generated (UTC): {html_escape(generated_at)}</div>
+      <div class="status">{status_emoji(overall_status)} {overall_status.upper()}</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;">Overall Distribution</h3>
+        {donut_svg}
+        <div class="legend">
+          <span><span class="dot" style="background:var(--green)"></span>Green ({counts.get("green", 0)})</span>
+          <span><span class="dot" style="background:var(--amber)"></span>Amber ({counts.get("amber", 0)})</span>
+          <span><span class="dot" style="background:var(--red)"></span>Red ({counts.get("red", 0)})</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px 0;">Issue Type Health Mix</h3>
+        {''.join(type_bars) if type_bars else '<div class="sub">No data.</div>'}
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Issue</th><th>Type</th><th>Jira Status</th><th>Health</th>
+            <th>Target Date</th><th>Last Activity</th><th>Days To Target</th>
+            <th>Days Since Activity</th><th>Comments</th><th>Worklogs</th><th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {''.join(table_rows)}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>"""
+
+
 def load_settings(path: str) -> Dict[str, Any]:
     settings = dict(DEFAULT_SETTINGS)
     if not path:
@@ -979,12 +1207,16 @@ def validate_scope(epic_key: str, feature_key: str) -> Tuple[str, str]:
     return "feature", feature
 
 
-def build_output_paths(output_dir: str, scope: str, root_key: str) -> Tuple[Path, Path]:
+def build_output_paths(output_dir: str, scope: str, root_key: str) -> Tuple[Path, Path, Path]:
     out_dir = Path(output_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     base = f"jira_health_{scope}_{sanitize_key(root_key)}_{stamp}"
-    return out_dir / f"{base}.json", out_dir / f"{base}.md"
+    return (
+        out_dir / f"{base}.json",
+        out_dir / f"{base}.md",
+        out_dir / f"{base}.html",
+    )
 
 
 def main() -> int:
@@ -1050,7 +1282,7 @@ def main() -> int:
         "generatedAtUtc": datetime.now(timezone.utc).isoformat(),
     }
 
-    json_path, md_path = build_output_paths(args.output_dir, scope, root_key)
+    json_path, md_path, html_path = build_output_paths(args.output_dir, scope, root_key)
     json_path.write_text(json.dumps(report_json, indent=2), encoding="utf-8")
     markdown = render_markdown_report(
         scope=scope,
@@ -1063,10 +1295,21 @@ def main() -> int:
         settings=settings,
     )
     md_path.write_text(markdown, encoding="utf-8")
+    html_report = render_html_report(
+        scope=scope,
+        root_key=root_key,
+        root_type=root_type,
+        overall_status=overall_status,
+        counts=counts,
+        edges=edges,
+        health_map=health_map,
+    )
+    html_path.write_text(html_report, encoding="utf-8")
 
     print(f"Overall health: {overall_status.upper()} ({counts})")
     print(f"JSON report: {json_path}")
     print(f"Markdown report: {md_path}")
+    print(f"HTML report: {html_path}")
     return 0
 
 
