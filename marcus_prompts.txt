@@ -1,11 +1,27 @@
 Sarah:
 
+Call forge_load_oss_excel_dataset with:
+file_path: "https://forge-oss-input-593517239653-us-east-2.s3.us-east-2.amazonaws.com/forge-uploads/a144c99f-c6d3-46f2-b7fe-b2a8a6f950d5/1772196510974_8807ad8dacf4_sample_oss_vulnerabilities_4h_v2.xlsx?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAYUMDCLVS7TNDBJIL%2F20260227%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260227T124831Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEHUaCXVzLWVhc3QtMiJHMEUCIDrs5mJMgpJt5iW9Vs1c%2F3qXYLyXrd%2BsspgMFQjexo5dAiEA9KXnVUgyG%2FcI3vcHb84%2B8%2ByfrOUFHmvfcfDfGdyZXR0q4QIIPhAAGgw1OTM1MTcyMzk2NTMiDNhbtInOWSpZZyVd4iq%2BAjB0T34juh9FkwqIlmn2YAFXdvlwwahBebRjffrUlgYyNxqP65fd2vR%2B5vGybTyQ2fwxoRPyc%2FEWr5ZumJY%2BWlcuTiyMCPOubICvSXtacFS8Qf1jznGbSQAIb3tEJziX8sCmwZ7UlpfJwV7thITfRRf3Hipr%2FziGUO8MWF0Sqj25sFtnyonmz41Cu%2BroXSMh3Qkic1kBG6AuZH96yN8kCmUwRzGWlIF3NDJLxmwLYR2G3z16n06OlkYcd6%2FZYSbyPaw91aZ93gQI3%2BT5EjcbP2VlfOWsVDkm3u2xBmEY6yi2m79G1P5jtdLD0PZhJ7ZN%2B%2B%2BO4DZa8Zkhf3M8TsjQaz1ZdGlVbLOQtdVtZY%2FOaAJbV1VJpDnPAbcP1uuT%2FJAcr5WSpq49NxfR564KeZgt4JMWUmHPAz5O6STC%2F1TFSjCGpYbNBjqPAd1duPE89jTkwaYxw2XbRk%2FFdNcv7UqZLUgx78XgwbuvoyVm3b6QkzJFj5DDfUDxhwLaeMS8obrk341LcTQJb%2F%2F1lHpBaxEvdk0O6LB8MkrC1A1mqjMQaegQlLj7uUeVBSLChoQ4EcIbMsB8w5YnapCUZhwY3mb6fuxGFdq1cDOcbvucObJQ%2BcHQH2HH9v2O&X-Amz-Signature=a9d4e8abbad6759dd03cddf4f47eb90c00dde5e12f3e4b41829c29aeb16e535a&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
+sheet_name: "OSS Vulnerabilities"
+dataset_id: "oss_a144c99f-c6d3-46f2-b7fe-_20260227124831"
+output_csv_path: "/tmp/solver_input.csv"
+include_metadata: true
+
 For the given dataset, optimize the schedule to remediate only all high and critical vulnerabilities (and defer medium and low) in 4 hours deadline with the team capacity of 5. If this is not feasible, then optimize the schedule by increasing the team capacity by 1 till the time you get the feasible plan.
 
 Visualize this schedule.
 
 Marcus:
 
+Call forge_load_csv_dataset with:
+file_path: "https://forge-oss-input-593517239653-us-east-2.s3.us-east-2.amazonaws.com/forge-uploads/a144c99f-c6d3-46f2-b7fe-b2a8a6f950d5/1772196548668_dda16618c5cd_marcus_risk_data.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAYUMDCLVS7TNDBJIL%2F20260227%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260227T124908Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEHUaCXVzLWVhc3QtMiJHMEUCIDrs5mJMgpJt5iW9Vs1c%2F3qXYLyXrd%2BsspgMFQjexo5dAiEA9KXnVUgyG%2FcI3vcHb84%2B8%2ByfrOUFHmvfcfDfGdyZXR0q4QIIPhAAGgw1OTM1MTcyMzk2NTMiDNhbtInOWSpZZyVd4iq%2BAjB0T34juh9FkwqIlmn2YAFXdvlwwahBebRjffrUlgYyNxqP65fd2vR%2B5vGybTyQ2fwxoRPyc%2FEWr5ZumJY%2BWlcuTiyMCPOubICvSXtacFS8Qf1jznGbSQAIb3tEJziX8sCmwZ7UlpfJwV7thITfRRf3Hipr%2FziGUO8MWF0Sqj25sFtnyonmz41Cu%2BroXSMh3Qkic1kBG6AuZH96yN8kCmUwRzGWlIF3NDJLxmwLYR2G3z16n06OlkYcd6%2FZYSbyPaw91aZ93gQI3%2BT5EjcbP2VlfOWsVDkm3u2xBmEY6yi2m79G1P5jtdLD0PZhJ7ZN%2B%2B%2BO4DZa8Zkhf3M8TsjQaz1ZdGlVbLOQtdVtZY%2FOaAJbV1VJpDnPAbcP1uuT%2FJAcr5WSpq49NxfR564KeZgt4JMWUmHPAz5O6STC%2F1TFSjCGpYbNBjqPAd1duPE89jTkwaYxw2XbRk%2FFdNcv7UqZLUgx78XgwbuvoyVm3b6QkzJFj5DDfUDxhwLaeMS8obrk341LcTQJb%2F%2F1lHpBaxEvdk0O6LB8MkrC1A1mqjMQaegQlLj7uUeVBSLChoQ4EcIbMsB8w5YnapCUZhwY3mb6fuxGFdq1cDOcbvucObJQ%2BcHQH2HH9v2O&X-Amz-Signature=4adce815c7adf67c37d08fcb12ca035ccefcf96b35ddc2c10c35d50c37569f97&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
+dataset_id: "risk_a144c99f-c6d3-46f2-b7fe-_20260227124908"
+delimiter: ","
+encoding: "utf-8"
+
 Optimize the schedule with reducing risk by 50% and optimal cost.
 
 Generate a full visual report for the optimized plan including table, budget timeline graph and remediation gantt graph.
+
+
+
