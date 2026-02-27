@@ -1,0 +1,11 @@
+Sarah:
+
+For the given dataset, optimize the schedule to remediate only all high and critical vulnerabilities (and defer medium and low) in 4 hours deadline with the team capacity of 5. If this is not feasible, then optimize the schedule by increasing the team capacity by 1 till the time you get the feasible plan.
+
+Visualize this schedule.
+
+Marcus:
+
+Optimize the schedule with reducing risk by 50% and optimal cost.
+
+Generate a full visual report for the optimized plan including table, budget timeline graph and remediation gantt graph.
