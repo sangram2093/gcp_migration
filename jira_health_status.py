@@ -34,7 +34,7 @@ import re
 import sys
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from html import escape as html_escape
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -173,6 +173,24 @@ def to_iso(dt: Optional[datetime]) -> Optional[str]:
     if dt is None:
         return None
     return dt.astimezone(timezone.utc).isoformat()
+
+
+def format_display_datetime(value: Any) -> str:
+    dt = parse_jira_datetime(value)
+    if not dt:
+        return "-"
+    return dt.astimezone(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
+
+
+def format_display_date(value: Any) -> str:
+    dt = parse_jira_datetime(value)
+    if not dt:
+        return "-"
+    return dt.astimezone(timezone.utc).strftime("%d %b %Y")
+
+
+def format_now_utc() -> str:
+    return datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
 
 
 def parse_args() -> argparse.Namespace:
@@ -366,6 +384,7 @@ class JiraClient:
 class IssueHealth:
     key: str
     summary: str
+    assignee: str
     issue_type: str
     jira_status: str
     status_category: str
@@ -620,7 +639,6 @@ class HealthAnalyzer:
         last_activity: Optional[datetime],
     ) -> Tuple[str, str, Optional[int], Optional[int]]:
         now = datetime.now(timezone.utc)
-        health_cfg = self.settings["health"]
 
         if self._is_done(issue):
             return "green", "Issue is in Done status category", None, None
@@ -631,66 +649,123 @@ class HealthAnalyzer:
 
         days_since_activity: Optional[int] = None
         if last_activity:
-            days_since_activity = (now.date() - last_activity.date()).days
-
-        if target_date and days_to_target is not None:
-            if days_to_target < -int(health_cfg["redDaysPastTarget"]):
-                return (
-                    "red",
-                    f"Past target date by {abs(days_to_target)} day(s)",
-                    days_to_target,
-                    days_since_activity,
-                )
-            if days_to_target <= int(health_cfg["amberDaysToTarget"]):
-                if days_since_activity is not None and days_since_activity > int(health_cfg["staleDaysAmber"]):
-                    return (
-                        "red",
-                        f"Due soon ({days_to_target} day(s)) and stale activity ({days_since_activity} day(s))",
-                        days_to_target,
-                        days_since_activity,
-                    )
-                return (
-                    "amber",
-                    f"Near target date ({days_to_target} day(s) remaining)",
-                    days_to_target,
-                    days_since_activity,
-                )
+            days_since_activity = max((now.date() - last_activity.date()).days, 0)
 
         if days_since_activity is None:
             return "amber", "No activity detected", days_to_target, None
 
-        if target_date:
-            if days_since_activity > int(health_cfg["staleDaysRed"]):
-                return (
-                    "red",
-                    f"No activity for {days_since_activity} day(s)",
-                    days_to_target,
-                    days_since_activity,
-                )
-            if days_since_activity > int(health_cfg["staleDaysAmber"]):
-                return (
-                    "amber",
-                    f"Stale activity ({days_since_activity} day(s))",
-                    days_to_target,
-                    days_since_activity,
-                )
-        else:
-            if days_since_activity > int(health_cfg["staleDaysRedWithoutTarget"]):
-                return (
-                    "red",
-                    f"No target date and stale activity ({days_since_activity} day(s))",
-                    days_to_target,
-                    days_since_activity,
-                )
-            if days_since_activity > int(health_cfg["staleDaysAmberWithoutTarget"]):
-                return (
-                    "amber",
-                    f"No target date and aging activity ({days_since_activity} day(s))",
-                    days_to_target,
-                    days_since_activity,
-                )
+        if days_since_activity <= 6:
+            return (
+                "green",
+                f"Recent activity within {days_since_activity} day(s)",
+                days_to_target,
+                days_since_activity,
+            )
+        if 7 <= days_since_activity <= 14:
+            return (
+                "amber",
+                f"No activity for {days_since_activity} day(s)",
+                days_to_target,
+                days_since_activity,
+            )
 
-        return "green", "On track", days_to_target, days_since_activity
+        return (
+            "red",
+            f"No activity for {days_since_activity} day(s)",
+            days_to_target,
+            days_since_activity,
+        )
+
+    @staticmethod
+    def _collect_descendants(start_key: str, edges: Dict[str, List[str]]) -> List[str]:
+        descendants: List[str] = []
+        stack: List[str] = list(edges.get(start_key, []))
+        seen: Set[str] = set()
+        while stack:
+            node = stack.pop()
+            if node in seen:
+                continue
+            seen.add(node)
+            descendants.append(node)
+            for child in edges.get(node, []):
+                stack.append(child)
+        return descendants
+
+    def _feature_target_date(
+        self,
+        feature_key: str,
+        root_key: str,
+        root_issue: Dict[str, Any],
+        health_map: Dict[str, IssueHealth],
+    ) -> Tuple[Optional[datetime], Optional[str], bool]:
+        if feature_key != root_key and self._is_type(root_issue, self.epic_aliases):
+            root_item = health_map.get(root_key)
+            epic_target = parse_jira_datetime(root_item.target_date) if root_item else None
+            if epic_target:
+                return epic_target - timedelta(days=15), "Epic target - 15 days", True
+
+        feature_item = health_map.get(feature_key)
+        feature_target = parse_jira_datetime(feature_item.target_date) if feature_item else None
+        if feature_target:
+            return feature_target, feature_item.target_source, feature_item.inherited_target
+
+        return None, None, False
+
+    def _apply_feature_rollups(
+        self,
+        root_key: str,
+        edges: Dict[str, List[str]],
+        health_map: Dict[str, IssueHealth],
+    ) -> None:
+        now = datetime.now(timezone.utc)
+        root_issue = self.get_issue_cached(root_key)
+
+        for key, item in health_map.items():
+            issue = self.get_issue_cached(key)
+            if not self._is_type(issue, self.feature_aliases):
+                continue
+
+            target_dt, target_src, inherited = self._feature_target_date(
+                feature_key=key,
+                root_key=root_key,
+                root_issue=root_issue,
+                health_map=health_map,
+            )
+            if target_dt:
+                item.target_date = to_iso(target_dt)
+                item.target_source = target_src
+                item.inherited_target = inherited
+                item.days_to_target = (target_dt.date() - now.date()).days
+
+            reasons: List[str] = []
+            if "block" in normalize_token(item.jira_status):
+                reasons.append("Feature status is Blocked")
+
+            if target_dt and target_dt.date() < now.date():
+                overdue_days = (now.date() - target_dt.date()).days
+                reasons.append(f"Feature is overdue by {overdue_days} day(s)")
+
+            descendants = self._collect_descendants(key, edges)
+            has_red_subtask = False
+            for descendant_key in descendants:
+                descendant = health_map.get(descendant_key)
+                if not descendant:
+                    continue
+                descendant_issue = self.get_issue_cached(descendant_key)
+                if self._is_type(descendant_issue, self.subtask_aliases) and descendant.health == "red":
+                    has_red_subtask = True
+                    break
+            if has_red_subtask:
+                reasons.append("At least one sub-task under this feature is RED")
+
+            if reasons:
+                base_reason = sanitize_text(item.reason, multiline=False)
+                joined = "; ".join(reasons)
+                if base_reason:
+                    item.reason = f"{base_reason}; {joined}"
+                else:
+                    item.reason = joined
+                item.health = "red"
 
     def calculate_health(
         self,
@@ -744,6 +819,11 @@ class HealthAnalyzer:
 
             fields = issue.get("fields", {})
             summary = sanitize_text(fields.get("summary"), multiline=False)
+            assignee_obj = fields.get("assignee") or {}
+            assignee = sanitize_text(
+                assignee_obj.get("displayName") or assignee_obj.get("name") or assignee_obj.get("emailAddress"),
+                multiline=False,
+            )
             issue_type = self.issue_type_name(issue)
             jira_status = sanitize_text(fields.get("status", {}).get("name"), multiline=False)
             status_category = sanitize_text(
@@ -756,6 +836,7 @@ class HealthAnalyzer:
             out[key] = IssueHealth(
                 key=key,
                 summary=summary,
+                assignee=assignee or "-",
                 issue_type=issue_type,
                 jira_status=jira_status,
                 status_category=status_category,
@@ -775,6 +856,7 @@ class HealthAnalyzer:
                 days_since_activity=days_since_activity,
             )
 
+        self._apply_feature_rollups(root_key=root_key, edges=edges, health_map=out)
         return out
 
 
@@ -882,6 +964,134 @@ def build_donut_svg(counts: Dict[str, int]) -> str:
         + f'<text x="95" y="92" text-anchor="middle" font-size="30" fill="#0f172a" font-weight="700">{sum(counts.values())}</text>'
         + '<text x="95" y="115" text-anchor="middle" font-size="12" fill="#64748b">Issues</text>'
         + "</svg>"
+    )
+
+
+def build_feature_rows(
+    scope: str,
+    root_key: str,
+    edges: Dict[str, List[str]],
+    health_map: Dict[str, IssueHealth],
+) -> List[Dict[str, Any]]:
+    now = datetime.now(timezone.utc)
+    root_item = health_map.get(root_key)
+    root_target_dt = parse_jira_datetime(root_item.target_date) if root_item else None
+
+    feature_keys: List[str] = []
+    if scope == "epic":
+        for key in edges.get(root_key, []):
+            if key in health_map:
+                feature_keys.append(key)
+    elif root_key in health_map:
+        feature_keys.append(root_key)
+
+    rows: List[Dict[str, Any]] = []
+    for key in feature_keys:
+        item = health_map.get(key)
+        if not item:
+            continue
+
+        feature_target_dt = parse_jira_datetime(item.target_date)
+        target_source = item.target_source or "-"
+        if scope == "epic" and root_target_dt:
+            feature_target_dt = root_target_dt - timedelta(days=15)
+            target_source = "Epic target - 15 days"
+
+        days_to_epic: Optional[int] = None
+        if root_target_dt:
+            days_to_epic = (root_target_dt.date() - now.date()).days
+
+        rows.append(
+            {
+                "key": item.key,
+                "summary": item.summary,
+                "assignee": item.assignee,
+                "jira_status": item.jira_status or "-",
+                "health": item.health,
+                "target_date": to_iso(feature_target_dt) if feature_target_dt else item.target_date,
+                "target_date_display": format_display_date(feature_target_dt) if feature_target_dt else format_display_date(item.target_date),
+                "target_source": target_source,
+                "days_to_epic": days_to_epic,
+            },
+        )
+
+    return rows
+
+
+def build_feature_days_svg(feature_rows: List[Dict[str, Any]]) -> str:
+    if not feature_rows:
+        return '<div class="sub">No feature data available.</div>'
+
+    values = [int(row["days_to_epic"]) for row in feature_rows if row["days_to_epic"] is not None]
+    if not values:
+        values = [0]
+    max_value = max(max(values), 1)
+    min_value = min(min(values), 0)
+    span = max(max_value - min_value, 1)
+
+    chart_height = 220
+    top_pad = 24
+    bottom_pad = 48
+    left_pad = 42
+    right_pad = 16
+    inner_height = chart_height - top_pad - bottom_pad
+
+    slot = 112
+    width = max(620, left_pad + right_pad + slot * len(feature_rows))
+
+    def y_for(value: int) -> float:
+        return top_pad + ((max_value - value) / span) * inner_height
+
+    zero_y = y_for(0)
+    bars: List[str] = []
+    labels: List[str] = []
+    for idx, row in enumerate(feature_rows):
+        x = left_pad + idx * slot + 20
+        bar_w = 46
+        value = int(row["days_to_epic"] or 0)
+        y = y_for(value)
+        if value >= 0:
+            rect_y = y
+            rect_h = max(zero_y - y, 2)
+        else:
+            rect_y = zero_y
+            rect_h = max(y - zero_y, 2)
+
+        color = status_color(str(row["health"]))
+        title = (
+            f"{row['key']} - {sanitize_text(row['summary'], multiline=False)} | "
+            f"Target: {row['target_date_display']} | Status: {str(row['health']).upper()} | "
+            f"Days to Epic: {value}"
+        )
+        bars.append(
+            f'<g><title>{html_escape(title)}</title>'
+            f'<rect x="{x}" y="{rect_y:.1f}" width="{bar_w}" height="{rect_h:.1f}" rx="8" fill="{color}" opacity="0.88"></rect>'
+            f'<text x="{x + bar_w / 2:.1f}" y="{rect_y - 6:.1f}" text-anchor="middle" font-size="11" fill="#334155">{value}</text>'
+            "</g>"
+        )
+        labels.append(
+            f'<text x="{x + bar_w / 2:.1f}" y="{chart_height - 16}" text-anchor="middle" font-size="11" fill="#475569">{html_escape(str(row["key"]))}</text>'
+        )
+
+    axis_labels = [
+        (max_value, y_for(max_value)),
+        (0, zero_y),
+        (min_value, y_for(min_value)),
+    ]
+    y_ticks = "".join(
+        f'<text x="8" y="{pos + 4:.1f}" font-size="10" fill="#64748b">{val}</text>'
+        for val, pos in axis_labels
+    )
+
+    return (
+        f'<svg width="100%" height="{chart_height}" viewBox="0 0 {width} {chart_height}" '
+        'role="img" aria-label="Feature days to epic target">'
+        f'<rect x="{left_pad}" y="{top_pad}" width="{width - left_pad - right_pad}" height="{inner_height}" fill="#f8fafc" stroke="#e2e8f0"></rect>'
+        f'<line x1="{left_pad}" y1="{zero_y:.1f}" x2="{width - right_pad}" y2="{zero_y:.1f}" stroke="#94a3b8" stroke-dasharray="3 3"></line>'
+        f"{y_ticks}"
+        f"{''.join(bars)}"
+        f"{''.join(labels)}"
+        "</svg>"
     )
 
 
@@ -1056,29 +1266,11 @@ def render_html_report(
     edges: Dict[str, List[str]],
     health_map: Dict[str, IssueHealth],
 ) -> str:
-    generated_at = datetime.now(timezone.utc).isoformat()
+    generated_at = format_now_utc()
     ordered_nodes = build_node_order(root_key, edges)
-    by_type = compute_type_health_stats(health_map)
-
     donut_svg = build_donut_svg(counts)
-
-    type_bars: List[str] = []
-    for row in by_type:
-        total = max(int(row["total"]), 1)
-        g = (row["green"] / total) * 100
-        a = (row["amber"] / total) * 100
-        r = (row["red"] / total) * 100
-        type_bars.append(
-            "<div class='type-row'>"
-            f"<div class='type-name'>{html_escape(str(row['type']))}</div>"
-            "<div class='type-bar'>"
-            f"<span class='seg green' style='width:{g:.2f}%'></span>"
-            f"<span class='seg amber' style='width:{a:.2f}%'></span>"
-            f"<span class='seg red' style='width:{r:.2f}%'></span>"
-            "</div>"
-            f"<div class='type-meta'>G:{row['green']} A:{row['amber']} R:{row['red']} / {row['total']}</div>"
-            "</div>"
-        )
+    feature_rows = build_feature_rows(scope=scope, root_key=root_key, edges=edges, health_map=health_map)
+    feature_graph_svg = build_feature_days_svg(feature_rows)
 
     table_rows: List[str] = []
     for key, depth in ordered_nodes:
@@ -1086,23 +1278,38 @@ def render_html_report(
         if not item:
             continue
         indent = depth * 20
-        status_chip = (
-            f"<span class='chip {item.health}'>{status_emoji(item.health)} {item.health.upper()}</span>"
-        )
+        status_chip = f"<span class='chip {item.health}'>{item.health.upper()}</span>"
         table_rows.append(
             "<tr>"
             f"<td><div class='key-cell' style='padding-left:{indent}px'><strong>{html_escape(item.key)}</strong><div class='summary'>{html_escape(item.summary or '')}</div></div></td>"
             f"<td>{html_escape(item.issue_type or '-')}</td>"
+            f"<td>{html_escape(item.assignee or '-')}</td>"
             f"<td>{html_escape(item.jira_status or '-')}</td>"
             f"<td>{status_chip}</td>"
-            f"<td>{html_escape(item.target_date or '-')}</td>"
-            f"<td>{html_escape(item.last_activity_at or '-')}</td>"
+            f"<td>{html_escape(format_display_date(item.target_date))}</td>"
+            f"<td>{html_escape(format_display_datetime(item.last_activity_at))}</td>"
             f"<td>{item.days_to_target if item.days_to_target is not None else '-'}</td>"
             f"<td>{item.days_since_activity if item.days_since_activity is not None else '-'}</td>"
             f"<td>{item.comment_count}</td>"
             f"<td>{item.worklog_count}</td>"
             f"<td>{html_escape(item.reason or '-')}</td>"
             "</tr>"
+        )
+
+    feature_rows_html: List[str] = []
+    for row in feature_rows:
+        status_text = str(row["health"]).upper()
+        days_to_epic = row["days_to_epic"]
+        days_to_epic_text = "-" if days_to_epic is None else f"{days_to_epic} day(s)"
+        feature_rows_html.append(
+            "<div class='feature-meta-row'>"
+            f"<div><strong>{html_escape(str(row['key']))}</strong> - {html_escape(str(row['summary'] or '-'))}</div>"
+            f"<div>Target: {html_escape(str(row['target_date_display']))}</div>"
+            f"<div>Status: <span class='chip {html_escape(str(row['health']))}'>{html_escape(status_text)}</span></div>"
+            f"<div>Jira Status: {html_escape(str(row['jira_status']))}</div>"
+            f"<div>Days to Epic Target: {html_escape(days_to_epic_text)}</div>"
+            f"<div>Assignee: {html_escape(str(row['assignee'] or '-'))}</div>"
+            "</div>"
         )
 
     return f"""<!doctype html>
@@ -1125,13 +1332,10 @@ def render_html_report(
     .card {{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; }}
     .legend {{ display:flex; gap:12px; font-size:12px; color:var(--muted); margin-top:6px; }}
     .dot {{ width:10px; height:10px; display:inline-block; border-radius:99px; margin-right:5px; }}
-    .type-row {{ margin-bottom:12px; }}
-    .type-name {{ font-size:13px; margin-bottom:4px; }}
-    .type-bar {{ display:flex; width:100%; height:12px; border-radius:10px; overflow:hidden; background:#e5e7eb; }}
-    .seg.green {{ background:var(--green); }} .seg.amber {{ background:var(--amber); }} .seg.red {{ background:var(--red); }}
-    .type-meta {{ margin-top:4px; font-size:12px; color:var(--muted); }}
+    .feature-meta {{ margin-top:8px; max-height:290px; overflow:auto; border-top:1px solid var(--line); padding-top:10px; }}
+    .feature-meta-row {{ display:grid; grid-template-columns: 1.7fr 0.9fr 0.8fr 0.9fr 1fr 0.9fr; gap:8px; align-items:center; font-size:12px; padding:8px 0; border-bottom:1px solid #f1f5f9; }}
     .table-wrap {{ margin-top:16px; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:auto; }}
-    table {{ border-collapse:collapse; width:100%; min-width:1200px; }}
+    table {{ border-collapse:collapse; width:100%; min-width:1320px; }}
     th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:13px; }}
     th {{ background:#f1f5f9; position:sticky; top:0; z-index:1; }}
     .key-cell .summary {{ margin-top:3px; font-size:12px; color:var(--muted); }}
@@ -1146,7 +1350,7 @@ def render_html_report(
     <div class="header">
       <h1 style="margin:0;">Jira Health Report - {html_escape(root_key)}</h1>
       <div class="sub">Scope: {html_escape(scope.upper())} | Root Type: {html_escape(root_type or "Unknown")} | Generated (UTC): {html_escape(generated_at)}</div>
-      <div class="status">{status_emoji(overall_status)} {overall_status.upper()}</div>
+      <div class="status">{overall_status.upper()}</div>
     </div>
 
     <div class="grid">
@@ -1160,8 +1364,12 @@ def render_html_report(
         </div>
       </div>
       <div class="card">
-        <h3 style="margin:0 0 10px 0;">Issue Type Health Mix</h3>
-        {''.join(type_bars) if type_bars else '<div class="sub">No data.</div>'}
+        <h3 style="margin:0 0 4px 0;">Feature View (Epic target reference)</h3>
+        <div class="sub">Feature target date is assumed as Epic target minus 15 days.</div>
+        {feature_graph_svg}
+        <div class="feature-meta">
+          {''.join(feature_rows_html) if feature_rows_html else '<div class="sub">No feature data available.</div>'}
+        </div>
       </div>
     </div>
 
@@ -1169,7 +1377,7 @@ def render_html_report(
       <table>
         <thead>
           <tr>
-            <th>Issue</th><th>Type</th><th>Jira Status</th><th>Health</th>
+            <th>Issue</th><th>Type</th><th>Assignee</th><th>Jira Status</th><th>Health</th>
             <th>Target Date</th><th>Last Activity</th><th>Days To Target</th>
             <th>Days Since Activity</th><th>Comments</th><th>Worklogs</th><th>Reason</th>
           </tr>
