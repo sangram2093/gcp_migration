@@ -1,0 +1,40 @@
+{
+  "issueTypeAliases": {
+    "epic": ["epic"],
+    "feature": ["feature", "new feature"],
+    "story": ["story", "user story"],
+    "subtask": ["sub-task", "subtask", "technical sub-task"]
+  },
+  "targetDateFieldNames": [
+    "Planned End",
+    "Target End",
+    "Target End Date",
+    "Target Date",
+    "Due Date"
+  ],
+  "doneStatusCategories": ["Done"],
+  "doneStatusNames": ["Done", "Closed", "Resolved"],
+  "linkTypeHintsForFeatureStory": ["Consists of", "is part of", "Relates to"],
+  "health": {
+    "amberDaysToTarget": 7,
+    "redDaysPastTarget": 0,
+    "staleDaysAmber": 7,
+    "staleDaysRed": 14,
+    "staleDaysAmberWithoutTarget": 14,
+    "staleDaysRedWithoutTarget": 30
+  },
+  "rollup": {
+    "anyRedMakesParentRed": true,
+    "anyAmberMakesParentAmber": true,
+    "redIssueRatioThreshold": 0.2,
+    "amberIssueRatioThreshold": 0.4
+  },
+  "fetch": {
+    "maxCommentsPerIssue": 200,
+    "maxWorklogsPerIssue": 200
+  },
+  "diagram": {
+    "maxNodes": 250
+  }
+}
+
