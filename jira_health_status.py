@@ -1032,82 +1032,70 @@ def build_feature_days_svg(feature_rows: List[Dict[str, Any]]) -> str:
         return '<div class="sub">No feature data available.</div>'
 
     activity_values = [int(row["days_since_activity"]) for row in feature_rows if row["days_since_activity"] is not None]
-    max_activity = max(activity_values) if activity_values else 0
-    x_max = max(20, max_activity + 2)
+    x_max = max(20, (max(activity_values) if activity_values else 0) + 2)
 
-    row_h = 34
-    top_pad = 34
-    bottom_pad = 38
-    chart_h = top_pad + bottom_pad + row_h * len(feature_rows)
-    left_label_w = 318
-    bar_w = 430
-    right_meta_w = 330
-    width = left_label_w + bar_w + right_meta_w + 22
-
-    axis_y = top_pad - 8
-    track_x = left_label_w
-    track_y0 = top_pad - 2
-
-    def x_for(days: float) -> float:
-        return track_x + (max(days, 0.0) / x_max) * bar_w
-
-    green_end = x_for(6.0)
-    amber_end = x_for(14.0)
-    red_end = x_for(float(x_max))
-
-    ticks: List[str] = []
     tick_step = 5 if x_max > 25 else 2
+    ticks: List[str] = []
     for value in range(0, x_max + 1, tick_step):
-        x = x_for(float(value))
+        pct = (value / x_max) * 100
         ticks.append(
-            f'<line x1="{x:.1f}" y1="{top_pad - 2}" x2="{x:.1f}" y2="{chart_h - bottom_pad + 6}" stroke="#e2e8f0"></line>'
-            f'<text x="{x:.1f}" y="{axis_y - 8}" text-anchor="middle" font-size="10" fill="#64748b">{value}d</text>'
+            "<div class='wf-tick'>"
+            f"<span class='wf-tick-line' style='left:{pct:.2f}%'></span>"
+            f"<span class='wf-tick-label' style='left:{pct:.2f}%'>{value}d</span>"
+            "</div>"
         )
 
-    rows_svg: List[str] = []
-    for idx, row in enumerate(feature_rows):
-        y = top_pad + idx * row_h
-        mid_y = y + (row_h * 0.5)
+    rows_html: List[str] = []
+    for row in feature_rows:
         age = max(int(row["days_since_activity"] or 0), 0)
-        bar_end = x_for(float(min(age, x_max)))
-        color = status_color(str(row["health"]))
-
+        pct = min((age / x_max) * 100, 100)
+        health = str(row["health"])
         key = html_escape(str(row["key"]))
-        summary = html_escape(sanitize_text(row["summary"], multiline=False)[:44] or "-")
-        status = html_escape(str(row["health"]).upper())
+        summary = html_escape(sanitize_text(row["summary"], multiline=False)[:56] or "-")
         jira_status = html_escape(str(row["jira_status"]))
+        status = html_escape(health.upper())
         target = html_escape(str(row["target_date_display"]))
         days_to_epic = row["days_to_epic"]
         days_to_epic_text = "-" if days_to_epic is None else f"{int(days_to_epic)}d"
+        assignee = html_escape(str(row["assignee"] or "-"))
 
         title = (
             f"{row['key']} | {sanitize_text(row['summary'], multiline=False)} | "
             f"Health: {str(row['health']).upper()} | Jira: {row['jira_status']} | "
-            f"Target: {row['target_date_display']} | Inactive: {age} day(s) | Days to Epic: {days_to_epic_text}"
+            f"Target: {row['target_date_display']} | Inactive: {age} day(s) | "
+            f"Days to Epic: {days_to_epic_text} | Assignee: {row['assignee']}"
         )
-        rows_svg.append(
-            f"<g><title>{html_escape(title)}</title>"
-            f'<rect x="{track_x}" y="{y + 6:.1f}" width="{bar_w}" height="16" rx="8" fill="#f8fafc" stroke="#e2e8f0"></rect>'
-            f'<rect x="{track_x}" y="{y + 6:.1f}" width="{max(green_end - track_x, 0):.1f}" height="16" rx="8" fill="#dcfce7" opacity="0.6"></rect>'
-            f'<rect x="{green_end:.1f}" y="{y + 6:.1f}" width="{max(amber_end - green_end, 0):.1f}" height="16" fill="#fef3c7" opacity="0.7"></rect>'
-            f'<rect x="{amber_end:.1f}" y="{y + 6:.1f}" width="{max(red_end - amber_end, 0):.1f}" height="16" rx="8" fill="#fee2e2" opacity="0.7"></rect>'
-            f'<rect x="{track_x}" y="{y + 6:.1f}" width="{max(bar_end - track_x, 3):.1f}" height="16" rx="8" fill="{color}" opacity="0.95"></rect>'
-            f'<text x="{track_x - 8}" y="{mid_y + 1:.1f}" text-anchor="end" font-size="11" fill="#0f172a" font-weight="600">{key}</text>'
-            f'<text x="{track_x - 8}" y="{mid_y + 13:.1f}" text-anchor="end" font-size="10" fill="#64748b">{summary}</text>'
-            f'<text x="{bar_end + 8:.1f}" y="{mid_y + 3:.1f}" font-size="11" fill="#334155">{age}d inactive</text>'
-            f'<text x="{track_x + bar_w + 10}" y="{mid_y - 5:.1f}" font-size="10.5" fill="#334155">Status: {status} / {jira_status}</text>'
-            f'<text x="{track_x + bar_w + 10}" y="{mid_y + 8:.1f}" font-size="10.5" fill="#334155">Target: {target} | To Epic: {days_to_epic_text}</text>'
-            "</g>"
+        rows_html.append(
+            f"<div class='wf-row' title='{html_escape(title)}'>"
+            f"<div class='wf-label'><div class='wf-key'>{key}</div><div class='wf-summary'>{summary}</div></div>"
+            "<div class='wf-track-wrap'>"
+            "<div class='wf-track-zones'>"
+            "<span class='wf-zone green' style='width:30%'></span>"
+            "<span class='wf-zone amber' style='width:40%'></span>"
+            "<span class='wf-zone red' style='width:30%'></span>"
+            "</div>"
+            f"<div class='wf-progress {health}' style='width:{pct:.2f}%'></div>"
+            f"<div class='wf-marker {health}' style='left:{pct:.2f}%'></div>"
+            f"<div class='wf-age' style='left:min(calc({pct:.2f}% + 10px), calc(100% - 84px))'>{age}d inactive</div>"
+            "</div>"
+            "<div class='wf-meta'>"
+            f"<span class='chip {health}'>{status}</span>"
+            f"<span>{jira_status}</span>"
+            f"<span>T:{target}</span>"
+            f"<span>Epic T-{days_to_epic_text}</span>"
+            f"<span>{assignee}</span>"
+            "</div>"
+            "</div>"
         )
 
     return (
-        f'<svg width="100%" height="{chart_h}" viewBox="0 0 {width} {chart_h}" '
-        'role="img" aria-label="Feature health waterfall chart">'
-        f'<text x="{track_x}" y="16" font-size="12" fill="#334155" font-weight="600">Waterfall axis: Days since last activity (staleness)</text>'
-        f'<text x="{track_x}" y="{axis_y}" font-size="10" fill="#64748b">0-6 Green zone | 7-14 Amber zone | 15+ Red zone</text>'
+        "<div class='wf-chart'>"
+        "<div class='wf-axis-note'>Waterfall axis: days since last activity (0-6 Green, 7-14 Amber, 15+ Red)</div>"
+        "<div class='wf-axis'>"
         f"{''.join(ticks)}"
-        f"{''.join(rows_svg)}"
-        "</svg>"
+        "</div>"
+        f"{''.join(rows_html)}"
+        "</div>"
     )
 
 
@@ -1348,6 +1336,31 @@ def render_html_report(
     .card {{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; }}
     .legend {{ display:flex; gap:12px; font-size:12px; color:var(--muted); margin-top:6px; }}
     .dot {{ width:10px; height:10px; display:inline-block; border-radius:99px; margin-right:5px; }}
+    .wf-chart {{ margin-top:10px; border:1px solid var(--line); border-radius:12px; padding:10px; background:#fcfdff; }}
+    .wf-axis-note {{ font-size:12px; color:#475569; margin-bottom:10px; }}
+    .wf-axis {{ position:relative; height:26px; margin:0 0 8px 240px; }}
+    .wf-tick-line {{ position:absolute; top:4px; bottom:12px; width:1px; background:#e2e8f0; }}
+    .wf-tick-label {{ position:absolute; top:12px; transform:translateX(-50%); font-size:10px; color:#64748b; }}
+    .wf-row {{ display:grid; grid-template-columns: 230px minmax(260px, 1fr) 280px; gap:10px; align-items:center; padding:7px 0; border-top:1px solid #f1f5f9; }}
+    .wf-row:first-of-type {{ border-top:none; }}
+    .wf-label {{ min-width:0; }}
+    .wf-key {{ font-size:12px; font-weight:700; color:#0f172a; }}
+    .wf-summary {{ font-size:11px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+    .wf-track-wrap {{ position:relative; height:20px; border-radius:999px; overflow:visible; background:#f8fafc; border:1px solid #e2e8f0; }}
+    .wf-track-zones {{ position:absolute; inset:0; display:flex; border-radius:999px; overflow:hidden; }}
+    .wf-zone.green {{ background:#dcfce7; }}
+    .wf-zone.amber {{ background:#fef3c7; }}
+    .wf-zone.red {{ background:#fee2e2; }}
+    .wf-progress {{ position:absolute; inset:0 auto 0 0; border-radius:999px; opacity:0.9; }}
+    .wf-progress.green {{ background:#16a34a; }}
+    .wf-progress.amber {{ background:#d97706; }}
+    .wf-progress.red {{ background:#dc2626; }}
+    .wf-marker {{ position:absolute; top:-3px; width:8px; height:24px; border-radius:8px; transform:translateX(-50%); border:2px solid #fff; box-shadow:0 0 0 1px rgba(15,23,42,0.18); }}
+    .wf-marker.green {{ background:#16a34a; }}
+    .wf-marker.amber {{ background:#d97706; }}
+    .wf-marker.red {{ background:#dc2626; }}
+    .wf-age {{ position:absolute; top:-18px; font-size:10px; color:#334155; white-space:nowrap; font-weight:600; }}
+    .wf-meta {{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; font-size:10.5px; color:#334155; }}
     .feature-meta {{ margin-top:8px; max-height:290px; overflow:auto; border-top:1px solid var(--line); padding-top:10px; }}
     .feature-meta-row {{ display:grid; grid-template-columns: 1.7fr 0.9fr 0.8fr 0.9fr 1fr 0.9fr; gap:8px; align-items:center; font-size:12px; padding:8px 0; border-bottom:1px solid #f1f5f9; }}
     .table-wrap {{ margin-top:16px; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:auto; }}
