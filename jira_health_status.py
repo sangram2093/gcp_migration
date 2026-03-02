@@ -637,6 +637,8 @@ class HealthAnalyzer:
         issue: Dict[str, Any],
         target_date: Optional[datetime],
         last_activity: Optional[datetime],
+        comment_count: int,
+        worklog_count: int,
     ) -> Tuple[str, str, Optional[int], Optional[int]]:
         now = datetime.now(timezone.utc)
 
@@ -650,6 +652,28 @@ class HealthAnalyzer:
         days_since_activity: Optional[int] = None
         if last_activity:
             days_since_activity = max((now.date() - last_activity.date()).days, 0)
+
+        issue_type_token = normalize_token(self.issue_type_name(issue))
+        is_story_or_subtask = ("story" in issue_type_token) or ("subtask" in issue_type_token)
+        no_jira_activity = (comment_count + worklog_count) == 0
+
+        # For story/subtask with due date but no Jira activity:
+        # - >15 days to due date => Amber
+        # - <=15 days to due date => Red
+        if is_story_or_subtask and target_date and days_to_target is not None and no_jira_activity:
+            if days_to_target <= 15:
+                return (
+                    "red",
+                    f"No Jira activity and only {days_to_target} day(s) left to due date",
+                    days_to_target,
+                    days_since_activity,
+                )
+            return (
+                "amber",
+                f"No Jira activity yet; {days_to_target} day(s) left to due date",
+                days_to_target,
+                days_since_activity,
+            )
 
         if days_since_activity is None:
             return "amber", "No activity detected", days_to_target, None
@@ -737,6 +761,12 @@ class HealthAnalyzer:
                 item.inherited_target = inherited
                 item.days_to_target = (target_dt.date() - now.date()).days
 
+            feature_status_token = normalize_token(item.jira_status)
+            if feature_status_token in {"readytorelease", "closed", "resolved"}:
+                item.health = "green"
+                item.reason = f"Feature status is {item.jira_status}; marked GREEN"
+                continue
+
             reasons: List[str] = []
             if "block" in normalize_token(item.jira_status):
                 reasons.append("Feature status is Blocked")
@@ -815,6 +845,8 @@ class HealthAnalyzer:
                 issue,
                 target_dt,
                 last_activity,
+                comment_count=len(comments),
+                worklog_count=len(worklogs),
             )
 
             fields = issue.get("fields", {})
