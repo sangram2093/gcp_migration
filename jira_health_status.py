@@ -1285,6 +1285,7 @@ def render_html_report(
         status_chip = f"<span class='chip {item.health}'>{item.health.upper()}</span>"
         parent_key = sanitize_key(item.parent_key) if item.parent_key else ""
         issue_type_token = normalize_token(item.issue_type)
+        node_kind = "feature" if "feature" in issue_type_token else ("story" if "story" in issue_type_token else "other")
         is_feature_or_story = ("feature" in issue_type_token) or ("story" in issue_type_token)
         has_children = bool(item.children)
         collapsible = has_children and is_feature_or_story
@@ -1295,7 +1296,7 @@ def render_html_report(
         )
         row_class = "tree-row collapsible-row" if collapsible else "tree-row"
         table_rows.append(
-            f"<tr class='{row_class}' data-key='{html_escape(item.key)}' data-parent='{html_escape(parent_key)}' data-depth='{depth}' data-collapsed='0'>"
+            f"<tr class='{row_class}' data-key='{html_escape(item.key)}' data-parent='{html_escape(parent_key)}' data-depth='{depth}' data-node-kind='{node_kind}' data-collapsed='0'>"
             f"<td><div class='key-cell' style='padding-left:{indent}px'>{toggle_html}<div class='key-content'><strong>{html_escape(item.key)}</strong><div class='summary'>{html_escape(item.summary or '')}</div></div></div></td>"
             f"<td>{html_escape(item.issue_type or '-')}</td>"
             f"<td>{html_escape(item.assignee or '-')}</td>"
@@ -1465,6 +1466,9 @@ def render_html_report(
       rows.forEach((row) => {{
         const btn = row.querySelector(".tree-toggle");
         if (!btn) return;
+        if ((row.dataset.nodeKind || "") === "feature") {{
+          row.dataset.collapsed = "1";
+        }}
         btn.addEventListener("click", (ev) => {{
           ev.preventDefault();
           row.dataset.collapsed = row.dataset.collapsed === "1" ? "0" : "1";
