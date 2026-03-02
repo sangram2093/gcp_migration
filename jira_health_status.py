@@ -1283,9 +1283,20 @@ def render_html_report(
             continue
         indent = depth * 20
         status_chip = f"<span class='chip {item.health}'>{item.health.upper()}</span>"
+        parent_key = sanitize_key(item.parent_key) if item.parent_key else ""
+        issue_type_token = normalize_token(item.issue_type)
+        is_feature_or_story = ("feature" in issue_type_token) or ("story" in issue_type_token)
+        has_children = bool(item.children)
+        collapsible = has_children and is_feature_or_story
+        toggle_html = (
+            "<button type='button' class='tree-toggle' aria-label='Toggle children' aria-expanded='true'>▾</button>"
+            if collapsible
+            else "<span class='tree-spacer'></span>"
+        )
+        row_class = "tree-row collapsible-row" if collapsible else "tree-row"
         table_rows.append(
-            "<tr>"
-            f"<td><div class='key-cell' style='padding-left:{indent}px'><strong>{html_escape(item.key)}</strong><div class='summary'>{html_escape(item.summary or '')}</div></div></td>"
+            f"<tr class='{row_class}' data-key='{html_escape(item.key)}' data-parent='{html_escape(parent_key)}' data-depth='{depth}' data-collapsed='0'>"
+            f"<td><div class='key-cell' style='padding-left:{indent}px'>{toggle_html}<div class='key-content'><strong>{html_escape(item.key)}</strong><div class='summary'>{html_escape(item.summary or '')}</div></div></div></td>"
             f"<td>{html_escape(item.issue_type or '-')}</td>"
             f"<td>{html_escape(item.assignee or '-')}</td>"
             f"<td>{html_escape(item.jira_status or '-')}</td>"
@@ -1367,7 +1378,12 @@ def render_html_report(
     table {{ border-collapse:collapse; width:100%; min-width:1320px; }}
     th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:13px; }}
     th {{ background:#f1f5f9; position:sticky; top:0; z-index:1; }}
+    .key-cell {{ display:flex; align-items:flex-start; gap:7px; min-width:0; }}
+    .key-content {{ min-width:0; }}
     .key-cell .summary {{ margin-top:3px; font-size:12px; color:var(--muted); }}
+    .tree-toggle {{ border:none; background:#eef2ff; color:#334155; border-radius:5px; width:18px; height:18px; line-height:18px; font-size:11px; cursor:pointer; padding:0; flex:0 0 18px; }}
+    .tree-toggle:hover {{ background:#e2e8f0; }}
+    .tree-spacer {{ width:18px; height:18px; flex:0 0 18px; }}
     .chip {{ padding:4px 8px; border-radius:999px; font-size:11px; font-weight:700; }}
     .chip.green {{ background:#dcfce7; color:#14532d; }}
     .chip.amber {{ background:#fef3c7; color:#78350f; }}
@@ -1417,6 +1433,48 @@ def render_html_report(
       </table>
     </div>
   </div>
+  <script>
+    (() => {{
+      const rows = Array.from(document.querySelectorAll("tbody tr.tree-row"));
+      if (!rows.length) return;
+
+      const rowByKey = new Map(rows.map((row) => [row.dataset.key, row]));
+      const hasCollapsedAncestor = (row) => {{
+        let parentKey = row.dataset.parent || "";
+        while (parentKey) {{
+          const parentRow = rowByKey.get(parentKey);
+          if (!parentRow) break;
+          if (parentRow.dataset.collapsed === "1") return true;
+          parentKey = parentRow.dataset.parent || "";
+        }}
+        return false;
+      }};
+
+      const refresh = () => {{
+        rows.forEach((row) => {{
+          const isRoot = row.dataset.depth === "0";
+          row.style.display = !isRoot && hasCollapsedAncestor(row) ? "none" : "";
+          const btn = row.querySelector(".tree-toggle");
+          if (!btn) return;
+          const collapsed = row.dataset.collapsed === "1";
+          btn.textContent = collapsed ? "▸" : "▾";
+          btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        }});
+      }};
+
+      rows.forEach((row) => {{
+        const btn = row.querySelector(".tree-toggle");
+        if (!btn) return;
+        btn.addEventListener("click", (ev) => {{
+          ev.preventDefault();
+          row.dataset.collapsed = row.dataset.collapsed === "1" ? "0" : "1";
+          refresh();
+        }});
+      }});
+
+      refresh();
+    }})();
+  </script>
 </body>
 </html>"""
 
