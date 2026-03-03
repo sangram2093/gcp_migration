@@ -4,6 +4,9 @@ This guide explains how to install, start, and configure dbCastle UI on Windows.
 
 ## 1) Install and Launch
 
+Prerequisite:
+- Node.js 22 must be installed and available in PATH (`node -v` should show v22.x).
+
 1. Copy the UI bundle ZIP file to `Downloads` (or another folder where you have full access).
 2. Unzip the file.
 3. Open PowerShell from the unzipped folder.
@@ -116,4 +119,3 @@ In the PowerShell window running dbCastle, press:
 ```text
 Ctrl + C
 ```
-
